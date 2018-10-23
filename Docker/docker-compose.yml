@@ -1,0 +1,43 @@
+version: "3.6"
+
+services:
+    new_trends_in_distributed_systems_jobmanager:
+        image: flink:1.3.2
+        container_name: "flink-jobmanager"
+        expose:
+            - "6123"
+        ports:
+            - "8081:8081"
+            - "2222:22"
+        command: jobmanager
+        environment:
+            - JOB_MANAGER_RPC_ADDRESS=jobmanager
+        volumes:
+            - hostx:/host/flink
+
+    new_trends_in_distributed_systems_taskmanager:
+        image: flink:1.3.2
+        container_name: "flink-taskmanager"
+        expose:
+            - "6121"
+            - "6122"
+        ports:
+            - "2223:22"
+        depends_on:
+            - new_trends_in_distributed_systems_jobmanager
+        command: taskmanager
+        links:
+            - "new_trends_in_distributed_systems_jobmanager:jobmanager"
+        environment:
+            - JOB_MANAGER_RPC_ADDRESS=jobmanager
+            - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=10
+        volumes:
+            - hostx:/host/flink
+
+volumes:
+    hostx:
+        driver: local
+        driver_opts:
+            type: 'none'
+            o: 'bind'
+            device: '/C/Temp/flink'
