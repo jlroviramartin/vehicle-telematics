@@ -136,8 +136,6 @@ public class VehicleTelematics {
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream
                 .map(new MapFunction<String, PrincipalEvent>() {
 
-                    PrincipalEvent principalEvent = new PrincipalEvent();
-
                     @Override
                     public PrincipalEvent map(String in) throws Exception {
 
