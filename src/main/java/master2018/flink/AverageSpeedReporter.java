@@ -1,6 +1,7 @@
 package master2018.flink;
 
 import master2018.flink.events.PrincipalEvent;
+import master2018.flink.functions.PrincipalEventBetweenSegmentsFilter;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
@@ -12,13 +13,7 @@ public class AverageSpeedReporter {
     public static SingleOutputStreamOperator<PrincipalEvent> analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
-                .filter(new FilterFunction<PrincipalEvent>() {
-                    @Override
-                    public boolean filter(PrincipalEvent tuple) throws Exception {
-                        int segment = (int) tuple.getSegment();
-                        return segment >= 52 && segment <= 56;
-                    }
-                });
+                .filter(new PrincipalEventBetweenSegmentsFilter());
                 /*.keyBy(1, 3, 5);
                 .reduce(
                         new ReduceFunction<Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>>() {
