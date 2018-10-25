@@ -14,6 +14,9 @@ public class PrincipalEvent
     // segment - f6
     // position - f7
 
+    public PrincipalEvent() {
+    }
+
     public PrincipalEvent(int time, int vid, int speed, int highway, int lane, int direction, int segment, int position) {
         f0 = time;
         f1 = vid;

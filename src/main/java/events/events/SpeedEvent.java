@@ -12,6 +12,9 @@ public class SpeedEvent extends Tuple6<Integer, Integer, Integer, Integer, Integ
     // direction - f4
     // speed - f5
 
+    public SpeedEvent() {
+    }
+
     public SpeedEvent(int time, int vid, int highway, int segment, int direction, int speed) {
         f0 = time;
         f1 = vid;
