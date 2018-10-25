@@ -145,15 +145,14 @@ public class VehicleTelematics {
                             throw new Exception("This line cannot be splitted: " + in);
                         }
 
-                        principalEvent.setTime(Integer.parseInt(split[0].trim()));
-                        principalEvent.setVid(Integer.parseInt(split[1].trim()));
-                        principalEvent.setSpeed(Integer.parseInt(split[2].trim()));
-                        principalEvent.setHighway(Integer.parseInt(split[3].trim()));
-                        principalEvent.setLane(Integer.parseInt(split[4].trim()));
-                        principalEvent.setDirection(Integer.parseInt(split[5].trim()));
-                        principalEvent.setSegment(Integer.parseInt(split[6].trim()));
-                        principalEvent.setPosition(Integer.parseInt(split[7].trim()));
-
+                        PrincipalEvent principalEvent = new PrincipalEvent(Integer.parseInt(split[0].trim()),
+                                Integer.parseInt(split[1].trim()),
+                                Integer.parseInt(split[2].trim()),
+                                Integer.parseInt(split[3].trim()),
+                                Integer.parseInt(split[4].trim()),
+                                Integer.parseInt(split[5].trim()),
+                                Integer.parseInt(split[6].trim()),
+                                Integer.parseInt(split[7].trim()));
                         return principalEvent;
                     }
                 });
