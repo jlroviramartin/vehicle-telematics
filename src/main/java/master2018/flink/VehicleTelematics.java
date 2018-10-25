@@ -1,6 +1,7 @@
 package master2018.flink;
 
 import events.events.PrincipalEvent;
+import events.events.SpeedEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple6;
@@ -158,26 +159,19 @@ public class VehicleTelematics {
                 });
 
         // Evaluates the speed fines.
-        SingleOutputStreamOperator<Tuple6<Integer, Integer, Integer, Integer, Integer, Integer>> speedFines = toTuples
-                .map(new MapFunction<PrincipalEvent, Tuple6<Integer, Integer, Integer, Integer, Integer, Integer>>() {
+        SingleOutputStreamOperator<SpeedEvent> speedFines = toTuples
+                .map(new MapFunction<PrincipalEvent, SpeedEvent>() {
                     @Override
-                    public Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> map(PrincipalEvent t) throws Exception {
+                    public SpeedEvent map(PrincipalEvent t) throws Exception {
 
-                        int time = t.getTime();
-                        int vid = t.getVid();
-                        int spd = t.getSpeed();
-                        int xway = t.getHighway();
-                        int dir = t.getDirection();
-                        int seg = t.getSegment();
-
-                        return new Tuple6<>(time, vid, xway, seg, dir, spd);
+                        return new SpeedEvent(t.getTime(), t.getVid(),
+                                t.getHighway(), t.getSegment(), t.getDirection(), t.getSpeed());
                     }
                 })
-                .filter(new FilterFunction<Tuple6<Integer, Integer, Integer, Integer, Integer, Integer>>() {
+                .filter(new FilterFunction<SpeedEvent>() {
                     @Override
-                    public boolean filter(Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> t) throws Exception {
-                        int spd = t.f5;
-                        return spd > SPEED_LIMIT;
+                    public boolean filter(SpeedEvent speedEvent) throws Exception {
+                        return speedEvent.getSpeed() > SPEED_LIMIT;
                     }
                 });
 
