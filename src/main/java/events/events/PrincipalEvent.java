@@ -14,7 +14,15 @@ public class PrincipalEvent
     // segment - f6
     // position - f7
 
-    public PrincipalEvent() {
+    public PrincipalEvent(int time, int vid, int speed, int highway, int lane, int direction, int segment, int position) {
+        f0 = time;
+        f1 = vid;
+        f2 = speed;
+        f3 = highway;
+        f4 = lane;
+        f5 = direction;
+        f6 = segment;
+        f7 = position;
     }
 
     public int getTime() {
@@ -27,6 +35,10 @@ public class PrincipalEvent
 
     public Integer getSpeed() {
         return f2;
+    }
+
+    public Integer getLane() {
+        return f4;
     }
 
     public Integer getHighway() {
