@@ -86,7 +86,7 @@ public class VehicleTelematics {
         }
     }
 
-    public static void main_1(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         initializeDebugLogger();
 
@@ -158,142 +158,15 @@ public class VehicleTelematics {
                     }
                 });
 
-        // Evaluates the speed fines.
-        SingleOutputStreamOperator<SpeedEvent> speedFines = toTuples
-                .map(new MapFunction<PrincipalEvent, SpeedEvent>() {
-                    @Override
-                    public SpeedEvent map(PrincipalEvent t) throws Exception {
 
-                        return new SpeedEvent(t.getTime(), t.getVid(),
-                                t.getHighway(), t.getSegment(), t.getDirection(), t.getSpeed());
-                    }
-                })
-                .filter(new FilterFunction<SpeedEvent>() {
-                    @Override
-                    public boolean filter(SpeedEvent speedEvent) throws Exception {
-                        return speedEvent.getSpeed() > SPEED_LIMIT;
-                    }
-                });
-
+        SingleOutputStreamOperator speedFines = SpeedReporter.analyze(toTuples);
         speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE);
 
-        LOG.info("Executing");
 
-        env.execute("Vehicle telematics");
+        // NOt yet implemented
+        //SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
+        //avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE);
 
-        LOG.info("End");
-
-        closeDebugLogger();
-    }
-
-    public static void main(String[] args) throws Exception {
-
-        initializeDebugLogger();
-
-        LOG.info("Begin");
-
-        String inputFile, outputPath;
-        if (!TESTING) {
-            if (args.length < 2) {
-                throw new IllegalArgumentException("Two parameters are needed");
-            }
-
-            inputFile = args[0];
-            if (inputFile == null || !Files.exists(Paths.get(inputFile)) || !Files.isRegularFile(Paths.get(inputFile))) {
-                throw new IllegalArgumentException("Argument 1 must be an existing file 3)");
-            }
-
-            outputPath = args[1];
-            if (outputPath == null || !Files.exists(Paths.get(outputPath)) || !Files.isDirectory(Paths.get(outputPath))) {
-                throw new IllegalArgumentException("Argument 2 must be an existing directory");
-            }
-        } else {
-            inputFile = Paths.get("C:\\Temp\\flink\\traffic-3xways").toString();
-            outputPath = Paths.get("C:\\Temp\\flink\\").toString();
-        }
-
-        LOG.info("inputFile " + inputFile);
-        LOG.info("outputPath " + outputPath);
-
-        // get the execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //env.setParallelism(PARALLELISM);
-
-        // get input data by connecting to the socket
-        DataStream<String> stream = env.readTextFile(inputFile);
-
-        // This is used to remove the comments of the input file. It is only useful with tests.
-        if (REMOVE_COMMENTS) {
-            stream = stream
-                    .filter(new FilterFunction<String>() {
-                        @Override
-                        public boolean filter(String t) throws Exception {
-                            return !t.startsWith("#") && !t.isEmpty();
-                        }
-                    });
-        }
-
-        // Evaluates the tuples.
-        SingleOutputStreamOperator<Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>> toTuples = stream
-                .map(new MapFunction<String, Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>>() {
-                    @Override
-                    public Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> map(String in) throws Exception {
-                        String[] split = in.split(",");
-
-                        if (split.length < 8) {
-                            throw new Exception("This line cannot be splitted: " + in);
-                        }
-                        int time = Integer.parseInt(split[0].trim());
-                        int vid = Integer.parseInt(split[1].trim());
-                        int spd = Integer.parseInt(split[2].trim());
-                        int xway = Integer.parseInt(split[3].trim());
-                        int lane = Integer.parseInt(split[4].trim());
-                        int dir = Integer.parseInt(split[5].trim());
-                        int seg = Integer.parseInt(split[6].trim());
-                        int pos = Integer.parseInt(split[7].trim());
-
-                        Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> out = new Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>(
-                                time, vid, spd, xway, lane, dir, seg, pos
-                        );
-                        return out;
-                    }
-                });
-
-        // Evaluates the speed fines.
-        SingleOutputStreamOperator<Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>> avgspeedfines = toTuples
-                .filter(new FilterFunction<Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>>() {
-                    @Override
-                    public boolean filter(Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> t) throws Exception {
-                        int segment = (int) t.f6;
-                        return segment >= 52 && segment <= 56;
-                    }
-                })
-                .map(new MapFunction<Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>, Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>>() {
-                    @Override
-                    public Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> map(Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> in) throws Exception {
-
-                        return new Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>(
-                                in.f0, in.f1, in.f2, in.f3, in.f4, in.f5, in.f6, in.f7, 1
-                        );
-                    }
-                });
-
-        // vid (1), xway (3), dir (5)
-
-        /*SingleOutputStreamOperator<Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>> reduce = avgspeedfines
-                .keyBy(1, 3, 5)
-                .reduce(
-                        new ReduceFunction<Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>>() {
-                    @Override
-                    public Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> reduce(Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> value1,
-                                                                                                                          Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> value2)
-                            throws Exception {
-                        return new Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer>(
-                                value1.f0, value1.f1, value1.f2, value1.f3, value1.f4, value1.f5, value1.f6, value1.f7, value1.f8 + value2.f8);
-                    }
-                });*/
-
-        avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE);
 
         LOG.info("Executing");
 
