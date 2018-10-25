@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package master2018.flink;
+package master2018.flink.functions;
 
 import events.events.PrincipalEvent;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 
 /**
- * This class extracts the time from {@code PrincipalEvent}. It is used to assignTimestampsAndWatermarks.
+ * This class extracts the time in milliseconds from {@code PrincipalEvent}. It is used to assignTimestampsAndWatermarks.
  */
 public final class PrincipalEventTimestampExtractor extends AscendingTimestampExtractor<PrincipalEvent> {
 

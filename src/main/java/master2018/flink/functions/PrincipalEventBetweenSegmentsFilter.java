@@ -3,13 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package master2018.flink;
+package master2018.flink.functions;
 
 import events.events.PrincipalEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 
 /**
  * This class evaluates if the segment of the {@code PrincipalEvent} is between 52 and 56.
+ * NOTE: it could be done more generic using variables instead of consts... Ok, if we need it...
  */
 public final class PrincipalEventBetweenSegmentsFilter implements FilterFunction<PrincipalEvent> {
 
