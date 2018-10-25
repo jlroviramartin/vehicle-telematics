@@ -1,4 +1,4 @@
-package events.events;
+package master2018.flink.events;
 
 import org.apache.flink.api.java.tuple.Tuple8;
 

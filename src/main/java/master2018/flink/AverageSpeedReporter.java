@@ -1,6 +1,6 @@
 package master2018.flink;
 
-import events.events.PrincipalEvent;
+import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 

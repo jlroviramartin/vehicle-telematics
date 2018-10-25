@@ -1,6 +1,6 @@
 package master2018.flink;
 
-import events.events.PrincipalEvent;
+import master2018.flink.events.PrincipalEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

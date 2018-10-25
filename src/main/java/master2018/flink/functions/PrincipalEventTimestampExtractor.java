@@ -5,7 +5,7 @@
  */
 package master2018.flink.functions;
 
-import events.events.PrincipalEvent;
+import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 
 /**
