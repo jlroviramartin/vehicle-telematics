@@ -2,7 +2,7 @@ package master2018.flink.events;
 
 import org.apache.flink.api.java.tuple.Tuple8;
 
-public class PrincipalEvent
+public final class PrincipalEvent
         extends Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 
     // time - f0
@@ -32,35 +32,39 @@ public class PrincipalEvent
         return f0;
     }
 
-    public Integer getVid() {
+    public int getVid() {
         return f1;
     }
 
-    public Integer getSpeed() {
+    public int getSpeed() {
         return f2;
     }
 
-    public Integer getLane() {
+    public int getLane() {
         return f4;
     }
 
-    public Integer getHighway() {
+    public int getHighway() {
         return f3;
     }
 
-    public Integer getDirection() {
+    public int getDirection() {
         return f5;
     }
 
-    public Integer getSegment() {
+    public int getSegment() {
         return f6;
+    }
+
+    public int getPosition() {
+        return f7;
     }
 
     public void setTime(int time) {
         f0 = time;
     }
 
-    public void setVid(Integer vid) {
+    public void setVid(int vid) {
         f1 = vid;
     }
 
