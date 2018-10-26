@@ -9,7 +9,7 @@ import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 
 /**
- * This class extracts the time in milliseconds from {@code PrincipalEvent}. It is used to assignTimestampsAndWatermarks.
+ * This class extracts the time in milliseconds of {@code PrincipalEvent}. It is used to assignTimestampsAndWatermarks.
  */
 public final class PrincipalEventTimestampExtractor extends AscendingTimestampExtractor<PrincipalEvent> {
 
