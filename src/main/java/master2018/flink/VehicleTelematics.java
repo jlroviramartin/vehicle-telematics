@@ -1,10 +1,10 @@
 package master2018.flink;
 
-import master2018.flink.events.PrincipalEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.*;
+import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.core.fs.FileSystem;
@@ -41,7 +41,12 @@ public class VehicleTelematics {
     /**
      * File for debug log.
      */
-    private final static String DEBUG_LOG_FILE = "C:\\Temp\\flink\\debug.log";
+    public final static String DEBUG_BASEPATH_DOCKER = "/host/flink";
+    public final static String DEBUG_BASEPATH_WIN = "C:\\Temp\\flink";
+    public final static String DEBUG_BASEPATH = DEBUG_BASEPATH_DOCKER;
+    public final static String DEBUG_LOG_FILE = Paths.get(DEBUG_BASEPATH, "debug.log").toString();
+    public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways_simple").toString();
+    public final static String DEBUG_OUTPUTPATH = Paths.get(DEBUG_BASEPATH, "out").toString();
 
     /**
      * Log.
@@ -104,8 +109,8 @@ public class VehicleTelematics {
                 throw new IllegalArgumentException("Argument 2 must be an existing directory");
             }
         } else {
-            inputFile = Paths.get("C:\\Temp\\flink\\traffic-3xways").toString();
-            outputPath = Paths.get("C:\\Temp\\flink").toString();
+            inputFile = Paths.get(DEBUG_INPUTFILE).toString();
+            outputPath = Paths.get(DEBUG_OUTPUTPATH).toString();
         }
 
         LOG.info("inputFile " + inputFile);
@@ -156,13 +161,16 @@ public class VehicleTelematics {
                 });
 
 
+        /*
         SingleOutputStreamOperator speedFines = SpeedReporter.analyze(toTuples);
-        speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE);
-
+        speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+        */
 
         // NOt yet implemented
-        //SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
-        //avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE);
+        SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
+        avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
 
 
         LOG.info("Executing");
