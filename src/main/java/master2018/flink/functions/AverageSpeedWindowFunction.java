@@ -5,17 +5,18 @@
  */
 package master2018.flink.functions;
 
-import java.util.Iterator;
 import master2018.flink.events.AverageSpeedTempEvent;
 import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
-public final class PrincipalEventWindowFunction
+import java.util.Iterator;
+
+public final class AverageSpeedWindowFunction
         implements WindowFunction<PrincipalEvent, AverageSpeedTempEvent, PrincipalKey, TimeWindow> {
 
-    public PrincipalEventWindowFunction() {
+    public AverageSpeedWindowFunction() {
     }
 
     @Override
@@ -23,6 +24,7 @@ public final class PrincipalEventWindowFunction
                       TimeWindow window,
                       Iterable<PrincipalEvent> input,
                       Collector<AverageSpeedTempEvent> out) throws Exception {
+
         Iterator<PrincipalEvent> iterator = input.iterator();
         if (!iterator.hasNext()) {
             return;

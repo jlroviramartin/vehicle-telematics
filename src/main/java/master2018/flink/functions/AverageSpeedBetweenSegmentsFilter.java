@@ -12,7 +12,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
  * This class evaluates if the segment of the {@code PrincipalEvent} is between 52 and 56.
  * NOTE: it could be done more generic using variables instead of consts... Ok, if we need it...
  */
-public final class PrincipalEventBetweenSegmentsFilter implements FilterFunction<PrincipalEvent> {
+public final class AverageSpeedBetweenSegmentsFilter implements FilterFunction<PrincipalEvent> {
 
     public final static int MIN = 52;
     public final static int MAX = 56;
