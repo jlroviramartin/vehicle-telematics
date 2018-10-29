@@ -14,6 +14,9 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.triggers.Trigger;
+import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 
 public class AverageSpeedReporter {
 
@@ -44,6 +47,7 @@ public class AverageSpeedReporter {
         split.select("0")
                 .keyBy(1, 3)
                 .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
+                //.trigger(new TriggerImpl())
                 .aggregate(new AggregateFunctionImpl())
                 .writeAsCsv("/host/flink/ou1_0.csv", FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
@@ -51,6 +55,7 @@ public class AverageSpeedReporter {
         split.select("1")
                 .keyBy(1, 3)
                 .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
+                //.trigger(new TriggerImpl())
                 .aggregate(new AggregateFunctionImpl())
                 .writeAsCsv("/host/flink/ou1_1.csv", FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
@@ -160,6 +165,31 @@ public class AverageSpeedReporter {
                 segment2 = b.getSegment2();
             }
             return new AverageSpeedTempEvent(time1, time2, vid, highway, direction, position1, position2, segment1, segment2);
+        }
+    }
+
+    private static class TriggerImpl extends Trigger<PrincipalEvent, TimeWindow> {
+
+        public TriggerImpl() {
+        }
+
+        @Override
+        public TriggerResult onElement(PrincipalEvent element, long timestamp, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
+            return TriggerResult.CONTINUE;
+        }
+
+        @Override
+        public TriggerResult onProcessingTime(long time, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
+            return TriggerResult.CONTINUE;
+        }
+
+        @Override
+        public TriggerResult onEventTime(long time, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
+            return TriggerResult.CONTINUE;
+        }
+
+        @Override
+        public void clear(TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
         }
     }
 }
