@@ -8,14 +8,13 @@ package master2018.flink.events;
 import org.apache.flink.api.java.tuple.Tuple9;
 
 /**
- * ----- PRUEBA -----
- * Time1 (0), Time2 (1), VID (2), XWay (3), Dir (4), Pos1 (5), Pos2 (6), Seg1 (7), Seg2 (8)
+ * ----- PRUEBA ----- Time1 (0), Time2 (1), VID (2), XWay (3), Dir (4), Pos1 (5), Pos2 (6), Seg1 (7), Seg2 (8)
  */
 public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 
     public AverageSpeedTempEvent() {
-        this.f0 = Integer.MAX_VALUE;
-        this.f1 = Integer.MIN_VALUE;
+        this.f0 = -1;
+        this.f1 = 0;
         this.f2 = 0;
         this.f3 = 0;
         this.f4 = 0;
@@ -50,7 +49,7 @@ public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Intege
     }
 
     public boolean isValid() {
-        return this.f0 == -1;
+        return this.getTime1() >= 0;
     }
 
     public int getTime1() {
@@ -89,5 +88,39 @@ public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Intege
         return this.f8;
     }
 
-    public static final AverageSpeedTempEvent NO_VALID = new AverageSpeedTempEvent(Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 0, 0, 0, 0, 0, 0);
+    public void setTime1(int time1) {
+        this.f0 = time1;
+    }
+
+    public void setTime2(int time2) {
+        this.f1 = time2;
+    }
+
+    public void setVid(int vid) {
+        this.f2 = vid;
+    }
+
+    public void setHighway(int highway) {
+        this.f3 = highway;
+    }
+
+    public void setDirection(int direction) {
+        this.f4 = direction;
+    }
+
+    public void setPosition1(int position1) {
+        this.f5 = position1;
+    }
+
+    public void setPosition2(int position2) {
+        this.f6 = position2;
+    }
+
+    public void setSegment1(int segment1) {
+        this.f7 = segment1;
+    }
+
+    public void setSegment2(int segment2) {
+        this.f8 = segment2;
+    }
 }

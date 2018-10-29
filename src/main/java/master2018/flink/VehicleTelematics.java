@@ -1,37 +1,24 @@
 package master2018.flink;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.*;
 import master2018.flink.events.PrincipalEvent;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * master2018.flink.VehicleTelematics /host/Temp/vehicle-data.csv /host/Temp/
+ * master2018.flink.VehicleTelematics /host/flink/vehicle-data.csv /host/flink/
  */
 public class VehicleTelematics {
 
     /**
-     * Speed limit used for calculating fines.
-     */
-    private static final int SPEED_LIMIT = 90;
-
-    /**
-     *
-     */
-    private static final int PARALLELISM = 10;
-
-    /**
      * If @{true} the execution is a test.
      */
-    private static final boolean TESTING = true;
+    public static final boolean TESTING = true;
 
     /**
      * If @{true} removes comments and empty lines from the input file.
@@ -45,7 +32,7 @@ public class VehicleTelematics {
     public final static String DEBUG_BASEPATH_WIN = "C:\\Temp\\flink";
     public final static String DEBUG_BASEPATH = DEBUG_BASEPATH_DOCKER;
     public final static String DEBUG_LOG_FILE = Paths.get(DEBUG_BASEPATH, "debug.log").toString();
-    public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways_simple").toString();
+    public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways.sample").toString();
     public final static String DEBUG_OUTPUTPATH = Paths.get(DEBUG_BASEPATH, "out").toString();
 
     /**
@@ -53,43 +40,9 @@ public class VehicleTelematics {
      */
     private final static Logger LOG = Logger.getLogger(VehicleTelematics.class.getName());
 
-    /**
-     * Initialize the java log at runtime.
-     */
-    private static void initializeDebugLogger() {
-        if (TESTING) {
-            try {
-                System.setProperty("java.util.logging.SimpleFormatter.format",
-                        "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %2$s %5$s%6$s%n");
-
-                String filePattern = DEBUG_LOG_FILE;
-                int limit = 1000 * 1000; // 1 Mb
-                int numLogFiles = 3;
-                FileHandler handler = new FileHandler(filePattern, limit, numLogFiles);
-                handler.setFormatter(new SimpleFormatter());
-
-                LOG.setLevel(Level.ALL);
-                LOG.addHandler(handler);
-            } catch (IOException | SecurityException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    /**
-     * Close the java log at runtime.
-     */
-    private static void closeDebugLogger() {
-        if (TESTING) {
-            for (Handler handler : LOG.getHandlers()) {
-                handler.close();
-            }
-        }
-    }
-
     public static void main(String[] args) throws Exception {
 
-        initializeDebugLogger();
+        DebugHelper.initializeDebugLogger();
 
         LOG.info("Begin");
 
@@ -118,6 +71,7 @@ public class VehicleTelematics {
 
         // get the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //env.setParallelism(PARALLELISM);
 
@@ -125,7 +79,7 @@ public class VehicleTelematics {
         DataStream<String> stream = env.readTextFile(inputFile);
 
         // This is used to remove the comments of the input file. It is only useful with tests.
-        if (REMOVE_COMMENTS) {
+        /*if (REMOVE_COMMENTS) {
             stream = stream
                     .filter(new FilterFunction<String>() {
                         @Override
@@ -133,7 +87,7 @@ public class VehicleTelematics {
                             return !t.startsWith("#") && !t.isEmpty();
                         }
                     });
-        }
+        }*/
 
         // Evaluates the tuples.
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream
@@ -149,36 +103,35 @@ public class VehicleTelematics {
                         }
 
                         PrincipalEvent principalEvent = new PrincipalEvent(Integer.parseInt(split[0].trim()),
-                                Integer.parseInt(split[1].trim()),
-                                Integer.parseInt(split[2].trim()),
-                                Integer.parseInt(split[3].trim()),
-                                Integer.parseInt(split[4].trim()),
-                                Integer.parseInt(split[5].trim()),
-                                Integer.parseInt(split[6].trim()),
-                                Integer.parseInt(split[7].trim()));
+                                                                           Integer.parseInt(split[1].trim()),
+                                                                           Integer.parseInt(split[2].trim()),
+                                                                           Integer.parseInt(split[3].trim()),
+                                                                           Integer.parseInt(split[4].trim()),
+                                                                           Integer.parseInt(split[5].trim()),
+                                                                           Integer.parseInt(split[6].trim()),
+                                                                           Integer.parseInt(split[7].trim()));
                         return principalEvent;
                     }
                 });
 
-
+        // 1st test
         /*
         SingleOutputStreamOperator speedFines = SpeedReporter.analyze(toTuples);
         speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
-        */
-
+         */
+        // 2nd test
         // NOt yet implemented
         SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
-        avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
-                .setParallelism(1);
+        /*avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);*/
 
-
-        LOG.info("Executing");
+        LOG.info("Executing the jobs");
 
         env.execute("Vehicle telematics");
 
         LOG.info("End");
 
-        closeDebugLogger();
+        DebugHelper.closeDebugLogger();
     }
 }
