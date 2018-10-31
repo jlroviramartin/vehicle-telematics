@@ -1,8 +1,5 @@
 package master2018.flink;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
 import master2018.flink.events.AverageSpeedEvent;
 import master2018.flink.events.AverageSpeedTempEvent;
 import master2018.flink.events.PrincipalEvent;
@@ -11,11 +8,14 @@ import master2018.flink.functions.AverageSpeedBetweenSegmentsFilter;
 import master2018.flink.functions.PrincipalEventTimestampExtractor;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class AverageSpeedReporter {
 
@@ -31,7 +31,7 @@ public class AverageSpeedReporter {
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         // Tiempo : 7m 40s (2)
-        tuples
+        return tuples
                 .filter(new AverageSpeedBetweenSegmentsFilter())
                 .assignTimestampsAndWatermarks(new PrincipalEventTimestampExtractor())
                 .keyBy(PrincipalEvent.VID, PrincipalEvent.HIGHWAY, PrincipalEvent.DIRECTION)
@@ -39,9 +39,7 @@ public class AverageSpeedReporter {
                 .aggregate(new AverageSpeedAggregateFunction())
                 .setParallelism(8)
                 .filter(new AverageSpeedFinesFilterFunction())
-                .map(new AverageSpeedEventMapFunction())
-                .writeAsCsv("/host/flink/out.csv", FileSystem.WriteMode.OVERWRITE)
-                .setParallelism(1);
+                .map(new AverageSpeedEventMapFunction());
 
         /* Other solutions...
 
@@ -80,7 +78,6 @@ public class AverageSpeedReporter {
                 .writeAsCsv("/host/flink/out.csv", FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
          */
-        return null;
     }
 
     /**
