@@ -21,18 +21,13 @@ public class VehicleTelematics {
     public static final boolean TESTING = true;
 
     /**
-     * If @{true} removes comments and empty lines from the input file.
-     */
-    private static final boolean REMOVE_COMMENTS = true;
-
-    /**
      * File for debug log.
      */
     public final static String DEBUG_BASEPATH_DOCKER = "/host/flink";
     public final static String DEBUG_BASEPATH_WIN = "C:\\Temp\\flink";
     public final static String DEBUG_BASEPATH = DEBUG_BASEPATH_DOCKER;
     public final static String DEBUG_LOG_FILE = Paths.get(DEBUG_BASEPATH, "debug.log").toString();
-    public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways.sample").toString();
+    public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways").toString();
     public final static String DEBUG_OUTPUTPATH = Paths.get(DEBUG_BASEPATH, "out").toString();
 
     /**
@@ -73,21 +68,9 @@ public class VehicleTelematics {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        //env.setParallelism(PARALLELISM);
 
         // get input data by connecting to the socket
         DataStream<String> stream = env.readTextFile(inputFile);
-
-        // This is used to remove the comments of the input file. It is only useful with tests.
-        /*if (REMOVE_COMMENTS) {
-            stream = stream
-                    .filter(new FilterFunction<String>() {
-                        @Override
-                        public boolean filter(String t) throws Exception {
-                            return !t.startsWith("#") && !t.isEmpty();
-                        }
-                    });
-        }*/
 
         // Evaluates the tuples.
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream

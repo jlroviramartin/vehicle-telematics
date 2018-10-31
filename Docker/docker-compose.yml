@@ -31,7 +31,7 @@ services:
             - "new_trends_in_distributed_systems_jobmanager:jobmanager"
         environment:
             - JOB_MANAGER_RPC_ADDRESS=jobmanager
-            - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=5
+            - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=10
         volumes:
             - hostx:/host/flink
 

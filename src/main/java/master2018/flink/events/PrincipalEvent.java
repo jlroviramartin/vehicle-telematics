@@ -14,6 +14,11 @@ public final class PrincipalEvent
     // segment - f6
     // position - f7
 
+    public static final int VID = 1;
+    public static final int HIGHWAY = 3;
+    public static final int DIRECTION = 5;
+    
+
     public PrincipalEvent() {
     }
 

@@ -8,7 +8,7 @@ package master2018.flink.events;
 import org.apache.flink.api.java.tuple.Tuple9;
 
 /**
- * ----- PRUEBA ----- Time1 (0), Time2 (1), VID (2), XWay (3), Dir (4), Pos1 (5), Pos2 (6), Seg1 (7), Seg2 (8)
+ * Time1 (0), Time2 (1), VID (2), XWay (3), Dir (4), Pos1 (5), Pos2 (6), Seg1 (7), Seg2 (8)
  */
 public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 

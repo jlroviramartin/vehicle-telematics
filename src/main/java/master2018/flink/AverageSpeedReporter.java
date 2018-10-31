@@ -3,21 +3,19 @@ package master2018.flink;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import master2018.flink.events.AverageSpeedEvent;
 import master2018.flink.events.AverageSpeedTempEvent;
 import master2018.flink.events.PrincipalEvent;
+import master2018.flink.functions.AverageSpeedAggregateFunction;
 import master2018.flink.functions.AverageSpeedBetweenSegmentsFilter;
 import master2018.flink.functions.PrincipalEventTimestampExtractor;
-import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
-import master2018.flink.functions.AverageSpeedWindowFunction;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.triggers.Trigger;
-import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 
 public class AverageSpeedReporter {
 
@@ -26,161 +24,149 @@ public class AverageSpeedReporter {
      */
     private final static Logger LOG = Logger.getLogger(AverageSpeedReporter.class.getName());
 
-    private static final List<String> PARTITION_0 = Arrays.asList("0");
-    private static final List<String> PARTITION_1 = Arrays.asList("1");
+    private static final String DIRECTION_0 = "direction0";
+    private static final String DIRECTION_1 = "direction1";
 
     // Evaluates the speed fines.
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
+        // Tiempo : 7m 40s (2)
+        tuples
+                .filter(new AverageSpeedBetweenSegmentsFilter())
+                .assignTimestampsAndWatermarks(new PrincipalEventTimestampExtractor())
+                .keyBy(PrincipalEvent.VID, PrincipalEvent.HIGHWAY, PrincipalEvent.DIRECTION)
+                .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
+                .aggregate(new AverageSpeedAggregateFunction())
+                .setParallelism(8)
+                .filter(new AverageSpeedFinesFilterFunction())
+                .map(new AverageSpeedEventMapFunction())
+                .writeAsCsv("/host/flink/out.csv", FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+
+        /* Other solutions...
+
+        // Time : 12m 50s (3)
+        tuples
+                .filter(new AverageSpeedBetweenSegmentsFilter())
+                .assignTimestampsAndWatermarks(new PrincipalEventTimestampExtractor())
+                .keyBy(PrincipalEvent.VID, PrincipalEvent.HIGHWAY, PrincipalEvent.DIRECTION)
+                .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
+                .apply(new AverageSpeedWindowFunction())
+                .setParallelism(8)
+                .writeAsCsv("/host/flink/out.csv", FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+
+        // Time : Tiempo : 8m 5s (1)
         SplitStream<PrincipalEvent> split = tuples
                 .filter(new AverageSpeedBetweenSegmentsFilter())
                 .assignTimestampsAndWatermarks(new PrincipalEventTimestampExtractor())
-                .split(new OutputSelector<PrincipalEvent>() {
-                    @Override
-                    public Iterable<String> select(PrincipalEvent event) {
-                        if (event.getDirection() == 0) {
-                            return PARTITION_0;
-                        } else {
-                            return PARTITION_1;
-                        }
-                    }
-                });
-        split.select("0")
-                .keyBy(1, 3)
-                .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
-                //.trigger(new TriggerImpl())
-                .aggregate(new AggregateFunctionImpl())
-                .writeAsCsv("/host/flink/ou1_0.csv", FileSystem.WriteMode.OVERWRITE)
-                .setParallelism(1);
+                .split(new DirectionOutputSelector());
 
-        split.select("1")
-                .keyBy(1, 3)
+        SingleOutputStreamOperator<AverageSpeedTempEvent> split1 = split.select(DIRECTION_0)
+                .keyBy(PrincipalEvent.VID, PrincipalEvent.HIGHWAY) // We dont need direction.
                 .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
-                //.trigger(new TriggerImpl())
-                .aggregate(new AggregateFunctionImpl())
-                .writeAsCsv("/host/flink/ou1_1.csv", FileSystem.WriteMode.OVERWRITE)
-                .setParallelism(1);
+                .aggregate(new AverageSpeedAggregateFunction())
+                .setParallelism(4);
 
+        SingleOutputStreamOperator<AverageSpeedTempEvent> split2 = split.select(DIRECTION_1)
+                .keyBy(PrincipalEvent.VID, PrincipalEvent.HIGHWAY) // We dont need direction.
+                .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
+                .aggregate(new AverageSpeedAggregateFunction())
+                .setParallelism(4);
+
+        split1.union(split2)
+                .filter(new AverageSpeedFinesFilterFunction())
+                .map(new AverageSpeedEventMapFunction())
+                .writeAsCsv("/host/flink/out.csv", FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+         */
         return null;
-
-        /*return tuples
-                .filter(new PrincipalEventBetweenSegmentsFilter())
-                .assignTimestampsAndWatermarks(new PrincipalEventTimestampExtractor())
-                .keyBy(new PrincipalEventKeySelector())
-                .window(EventTimeSessionWindows.withGap(Time.seconds(31)))
-                .apply(new AverageSpeedWindowFunction());
-
-        // <----- AverageSpeedWindowFunction: faltan comprobaciones y utilizar AverageSpeedEvent
-        //        en vez de AverageSpeedTmpEvent
-        //        Tiene un rendimiento malo, pero creo que podria funcionar.
-        //        Otra solucion: SlidingWindow?
-        //                       reduce?
     }
 
-    private static class AggregateFunctionImpl implements AggregateFunction<PrincipalEvent, AverageSpeedTempEvent, AverageSpeedTempEvent> {
+    /**
+     * This class selects {@code PrincipalEvent}s based on the direction. It is only used in case of splitting the
+     * original data ({@code tuples} or list of {@code PrincipalEvent})
+     */
+    private static class DirectionOutputSelector implements OutputSelector<PrincipalEvent> {
 
-        public AggregateFunctionImpl() {
+        public DirectionOutputSelector() {
         }
 
-        @Override
-        public AverageSpeedTempEvent createAccumulator() {
-            return new AverageSpeedTempEvent();
-        }
+        private static final List<String> PARTITION_DIR_0 = Arrays.asList(DIRECTION_0);
+        private static final List<String> PARTITION_DIR_1 = Arrays.asList(DIRECTION_1);
 
         @Override
-        public void add(PrincipalEvent value, AverageSpeedTempEvent accumulator) {
-            if (!accumulator.isValid()) {
-                accumulator.setTime1(value.getTime());
-                accumulator.setTime2(value.getTime());
-
-                accumulator.setVid(value.getVid());
-                accumulator.setHighway(value.getHighway());
-                accumulator.setDirection(value.getDirection());
-
-                accumulator.setPosition1(value.getPosition());
-                accumulator.setPosition2(value.getPosition());
-                accumulator.setSegment1(value.getSegment());
-                accumulator.setSegment2(value.getSegment());
+        public Iterable<String> select(PrincipalEvent event) {
+            if (event.getDirection() == 0) {
+                return PARTITION_DIR_0;
             } else {
-                //int vid = value.getVid();
-                //int highway = value.getHighway();
-                //int direction = value.getDirection();
-                if (value.getTime() < accumulator.getTime1()) {
-                    accumulator.setTime1(value.getTime());
-                    accumulator.setPosition1(value.getPosition());
-                    accumulator.setSegment1(value.getSegment());
-                } else {
-                    accumulator.setTime2(value.getTime());
-                    accumulator.setPosition2(value.getPosition());
-                    accumulator.setSegment2(value.getSegment());
+                return PARTITION_DIR_1;
+            }
+        }
+    }
+
+    /**
+     * This method convert meters per second miles per hour.
+     */
+    public static int getMilesPerHour(int metersPerSecond) {
+        return (int) Math.floor(metersPerSecond * 2.23694);
+    }
+
+    /**
+     * This class filter AverageSpeedTempEvent to detect fines.
+     */
+    private static class AverageSpeedFinesFilterFunction implements FilterFunction<AverageSpeedTempEvent> {
+
+        public AverageSpeedFinesFilterFunction() {
+        }
+
+        @Override
+        public boolean filter(AverageSpeedTempEvent value) throws Exception {
+            if (value.getDirection() == 0) {
+                if (value.getSegment1() != 52 || value.getSegment2() != 56) {
+                    return false;
                 }
-            }
-        }
-
-        @Override
-        public AverageSpeedTempEvent getResult(AverageSpeedTempEvent accumulator) {
-            return accumulator;
-        }
-
-        @Override
-        public AverageSpeedTempEvent merge(AverageSpeedTempEvent a, AverageSpeedTempEvent b) {
-            int vid = a.getVid();
-            int highway = a.getHighway();
-            int direction = a.getDirection();
-
-            // Minimum
-            int time1;
-            int position1;
-            int segment1;
-            if (a.getTime1() < b.getTime1()) {
-                time1 = a.getTime1();
-                position1 = a.getPosition1();
-                segment1 = a.getSegment1();
+                // m/s -> miles/h
+                int averageSpeed = getMilesPerHour(value.getPosition2() - value.getPosition1()) / (value.getTime2() - value.getTime1());
+                return (averageSpeed > 60);
             } else {
-                time1 = b.getTime1();
-                position1 = b.getPosition1();
-                segment1 = b.getSegment1();
+                if (value.getSegment1() != 56 || value.getSegment2() != 52) {
+                    return false;
+                }
+                // m/s -> miles/h
+                int averageSpeed = getMilesPerHour(value.getPosition1() - value.getPosition2()) / (value.getTime2() - value.getTime1());
+                return (averageSpeed > 60);
             }
-
-            // Maximum
-            int time2;
-            int position2;
-            int segment2;
-            if (a.getTime2() > b.getTime2()) {
-                time2 = a.getTime2();
-                position2 = a.getPosition2();
-                segment2 = a.getSegment2();
-            } else {
-                time2 = b.getTime2();
-                position2 = b.getPosition2();
-                segment2 = b.getSegment2();
-            }
-            return new AverageSpeedTempEvent(time1, time2, vid, highway, direction, position1, position2, segment1, segment2);
         }
     }
 
-    private static class TriggerImpl extends Trigger<PrincipalEvent, TimeWindow> {
+    /**
+     * This class maps from AverageSpeedTempEvent to AverageSpeedEvent;
+     */
+    private static class AverageSpeedEventMapFunction implements MapFunction<AverageSpeedTempEvent, AverageSpeedEvent> {
 
-        public TriggerImpl() {
+        public AverageSpeedEventMapFunction() {
         }
 
         @Override
-        public TriggerResult onElement(PrincipalEvent element, long timestamp, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
-            return TriggerResult.CONTINUE;
-        }
-
-        @Override
-        public TriggerResult onProcessingTime(long time, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
-            return TriggerResult.CONTINUE;
-        }
-
-        @Override
-        public TriggerResult onEventTime(long time, TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
-            return TriggerResult.CONTINUE;
-        }
-
-        @Override
-        public void clear(TimeWindow window, Trigger.TriggerContext ctx) throws Exception {
+        public AverageSpeedEvent map(AverageSpeedTempEvent value) throws Exception {
+            if (value.getDirection() == 0) {
+                return new AverageSpeedEvent(
+                        value.getTime1(),
+                        value.getTime2(),
+                        value.getVid(),
+                        value.getHighway(),
+                        value.getDirection(),
+                        getMilesPerHour(value.getPosition2() - value.getPosition1()) / (value.getTime2() - value.getTime1()));
+            } else {
+                return new AverageSpeedEvent(
+                        value.getTime1(),
+                        value.getTime2(),
+                        value.getVid(),
+                        value.getHighway(),
+                        value.getDirection(),
+                        getMilesPerHour(value.getPosition1() - value.getPosition2()) / (value.getTime2() - value.getTime1()));
+            }
         }
     }
 }
