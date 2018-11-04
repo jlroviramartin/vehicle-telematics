@@ -6,20 +6,17 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
 public class AccidentReporter {
 
-    private static final int VID = 1;
-    private static final int HIGHWAY = 3;
-    private static final int DIRECTION = 5;
-    private static final int SEGMENT = 6;
-    private static final int POSITION = 7;
-
-
+    // 40s
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
                 .filter(event -> event.getSpeed() == 0) // speed = 0
-                .keyBy(VID, HIGHWAY, DIRECTION, SEGMENT, POSITION) // key stream by vid, highway, direction, segment, position
+                .keyBy(PrincipalEvent.VID,
+                       PrincipalEvent.HIGHWAY,
+                       PrincipalEvent.DIRECTION,
+                       PrincipalEvent.SEGMENT,
+                       PrincipalEvent.POSITION) // key stream by vid, highway, direction, segment, position
                 .countWindow(4, 1) // Slide window, start each one event
                 .apply(new AccidentWindowFunction());
     }
-
 }

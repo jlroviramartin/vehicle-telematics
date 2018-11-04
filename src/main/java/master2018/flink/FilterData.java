@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import master2018.flink.events.PrincipalEvent;
 import master2018.flink.functions.ParsePrincipalEventMapFunction;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -57,13 +56,7 @@ public class FilterData {
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream
                 .map(new ParsePrincipalEventMapFunction());
 
-        toTuples
-                .filter(new FilterFunction<PrincipalEvent>() {
-                    @Override
-                    public boolean filter(PrincipalEvent value) throws Exception {
-                        return value.getVid() == vid;
-                    }
-                })
+        FilterDataPerVehicle.analyze(toTuples, vid)
                 .writeAsCsv(outputFile, FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
 

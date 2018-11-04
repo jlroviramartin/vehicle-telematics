@@ -20,7 +20,6 @@ public class Utils {
     /*public static int getMilesPerHour(int metersPerSecond) {
         return (int) Math.floor(metersPerSecond * 2.23694);
     }*/
-
     /**
      * This method convert meters per second miles per hour.
      */
@@ -37,5 +36,14 @@ public class Utils {
             count++;
         }
         return count;
+    }
+
+    public static <T> void clear(Iterable<T> input) {
+        if (input instanceof Collection) {
+            ((Collection) input).clear();
+        }
+        for (Iterator<T> it = input.iterator(); it.hasNext(); it.next()) {
+            it.remove();
+        }
     }
 }

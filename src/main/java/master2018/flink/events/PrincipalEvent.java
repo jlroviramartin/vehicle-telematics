@@ -17,85 +17,85 @@ public final class PrincipalEvent
     public static final int HIGHWAY = 3;
     public static final int DIRECTION = 5;
     public static final int SEGMENT = 6;
+    public static final int POSITION = 7;
 
     public PrincipalEvent() {
     }
 
     public PrincipalEvent(int time, int vid, int speed, int highway, int lane, int direction, int segment, int position) {
-        f0 = time;
-        f1 = vid;
-        f2 = speed;
-        f3 = highway;
-        f4 = lane;
-        f5 = direction;
-        f6 = segment;
-        f7 = position;
+        setTime(time);
+        setVid(vid);
+        setSpeed(speed);
+        setHighway(highway);
+        setLane(lane);
+        setDirection(direction);
+        setSegment(segment);
+        setPosition(position);
     }
 
     public int getTime() {
         return f0;
     }
 
-    public int getVid() {
-        return f1;
-    }
-
-    public int getSpeed() {
-        return f2;
-    }
-
-    public int getLane() {
-        return f4;
-    }
-
-    public int getHighway() {
-        return f3;
-    }
-
-    public int getDirection() {
-        return f5;
-    }
-
-    public int getSegment() {
-        return f6;
-    }
-
-    public int getPosition() {
-        return f7;
-    }
-
     public void setTime(int time) {
         f0 = time;
+    }
+
+    public int getVid() {
+        return f1;
     }
 
     public void setVid(int vid) {
         f1 = vid;
     }
 
+    public int getSpeed() {
+        return f2;
+    }
+
     public void setSpeed(int speed) {
         f2 = speed;
     }
 
-    public void setHighway(int highway) {
-        f3 = highway;
+    public int getLane() {
+        return f4;
     }
 
     public void setLane(int lane) {
         f4 = lane;
     }
 
+    public int getHighway() {
+        return f3;
+    }
+
+    public void setHighway(int highway) {
+        f3 = highway;
+    }
+
+    public int getDirection() {
+        return f5;
+    }
+
     public void setDirection(int direction) {
         f5 = direction;
+    }
+
+    public int getSegment() {
+        return f6;
     }
 
     public void setSegment(int segment) {
         f6 = segment;
     }
 
+    public int getPosition() {
+        return f7;
+    }
+
     public void setPosition(int position) {
         f7 = position;
     }
-
 
     public void set(PrincipalEvent ev) {
         this.f0 = ev.f0;

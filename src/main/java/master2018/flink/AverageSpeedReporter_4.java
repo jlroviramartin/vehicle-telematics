@@ -7,6 +7,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.api.java.tuple.Tuple8;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
@@ -16,8 +17,8 @@ import static master2018.flink.Utils.getMilesPerHour;
 import static master2018.flink.functions.AverageSpeedBetweenSegmentsFilter.MAX;
 import static master2018.flink.functions.AverageSpeedBetweenSegmentsFilter.MIN;
 
-// 3m 53 / 5m 14s / con paralelizacion de 10: 2m 32s
-public class AverageSpeedReporter {
+// con paralelizacion de 10: 2m 43s, 2m 53s, 2m 41s
+public class AverageSpeedReporter_4 {
 
     // Evaluates the speed fines.
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
@@ -175,7 +176,8 @@ public class AverageSpeedReporter {
      * This {@code AggregateFunction} aggregates the {@code ReducedPrincipalEvent} events to build
      * {@code AverageSpeedEvent}s.
      */
-    private static final class AverageSpeedAggregateFunction implements AggregateFunction<ReducedPrincipalEvent, Acc, AverageSpeedEvent> {
+    private static final class AverageSpeedAggregateFunction
+            implements AggregateFunction<ReducedPrincipalEvent, Acc, AverageSpeedEvent> {
 
         private static final AverageSpeedEvent EMPTY = new AverageSpeedEvent(0, 0, 0, 0, 0, 0);
 
@@ -191,33 +193,33 @@ public class AverageSpeedReporter {
         public void add(ReducedPrincipalEvent value, Acc accumulator) {
             switch (value.getSegment()) {
                 case 52: {
-                    if (value.getPosition() < accumulator.position52) {
-                        if (accumulator.vid == -1) {
-                            accumulator.vid = value.getVid();
-                            accumulator.highway = value.getHighway();
-                            accumulator.direction = value.getDirection();
+                    if (value.getPosition() < accumulator.getPosition52()) {
+                        if (accumulator.getVid() == -1) {
+                            accumulator.setVid(value.getVid());
+                            accumulator.setHighway(value.getHighway());
+                            accumulator.setDirection(value.getDirection());
                         }
 
-                        accumulator.s52 = true;
-                        accumulator.time52 = value.getTime();
-                        accumulator.position52 = value.getPosition();
+                        accumulator.setSegment52(true);
+                        accumulator.setTime52(value.getTime());
+                        accumulator.setPosition52(value.getPosition());
                     }
                     break;
                 }
                 case 53:
-                    accumulator.s53 = true;
+                    accumulator.setSegment53(true);
                     break;
                 case 54:
-                    accumulator.s54 = true;
+                    accumulator.setSegment54(true);
                     break;
                 case 55:
-                    accumulator.s55 = true;
+                    accumulator.setSegment55(true);
                     break;
                 case 56: {
-                    if (value.getPosition() > accumulator.position56) {
-                        accumulator.s56 = true;
-                        accumulator.time56 = value.getTime();
-                        accumulator.position56 = value.getPosition();
+                    if (value.getPosition() > accumulator.getPosition56()) {
+                        accumulator.setSegment56(true);
+                        accumulator.setTime56(value.getTime());
+                        accumulator.setPosition56(value.getPosition());
                     }
                     break;
                 }
@@ -226,14 +228,28 @@ public class AverageSpeedReporter {
 
         @Override
         public AverageSpeedEvent getResult(Acc accumulator) {
-            if (accumulator.s52 && accumulator.s53 && accumulator.s54 && accumulator.s55 && accumulator.s56) {
+            if (accumulator.containsAllSegments()) {
                 // m/s -> miles/h
-                if (accumulator.time52 < accumulator.time56) { // Incrementa
-                    int averageSpeed = getMilesPerHour(accumulator.position56 - accumulator.position52, accumulator.time56 - accumulator.time52);
-                    return new AverageSpeedEvent(accumulator.time52, accumulator.time56, accumulator.vid, accumulator.highway, 0, averageSpeed);
-                } else { // Decrementa
-                    int averageSpeed = getMilesPerHour(accumulator.position56 - accumulator.position52, accumulator.time52 - accumulator.time56);
-                    return new AverageSpeedEvent(accumulator.time56, accumulator.time52, accumulator.vid, accumulator.highway, 1, averageSpeed);
+                if (accumulator.getTime52() < accumulator.getTime56()) { // Direction East
+                    int averageSpeed = getMilesPerHour(accumulator.getPosition56() - accumulator.getPosition52(),
+                                                       accumulator.getTime56() - accumulator.getTime52());
+
+                    return new AverageSpeedEvent(accumulator.getTime52(),
+                                                 accumulator.getTime56(),
+                                                 accumulator.getVid(),
+                                                 accumulator.getHighway(),
+                                                 0,
+                                                 averageSpeed);
+                } else { // Direction West
+                    int averageSpeed = getMilesPerHour(accumulator.getPosition56() - accumulator.getPosition52(),
+                                                       accumulator.getTime52() - accumulator.getTime56());
+
+                    return new AverageSpeedEvent(accumulator.getTime56(),
+                                                 accumulator.getTime52(),
+                                                 accumulator.getVid(),
+                                                 accumulator.getHighway(),
+                                                 1,
+                                                 averageSpeed);
                 }
             }
             return EMPTY;
@@ -241,37 +257,35 @@ public class AverageSpeedReporter {
 
         @Override
         public Acc merge(Acc a, Acc b) {
-            if (a.vid == -1) {
+            if (a.getVid() == -1) {
                 return b;
-            } else if (b.vid == -1) {
+            } else if (b.getVid() == -1) {
                 return a;
             }
 
             Acc acc = new Acc();
-            acc.vid = a.vid;
-            acc.highway = a.highway;
-            acc.direction = a.direction;
+            acc.setVid(a.getVid());
+            acc.setHighway(a.getHighway());
+            acc.setDirection(a.getDirection());
 
-            acc.s52 = a.s52 || b.s52;
-            acc.s53 = a.s53 || b.s53;
-            acc.s54 = a.s54 || b.s54;
-            acc.s55 = a.s55 || b.s55;
-            acc.s56 = a.s56 || b.s56;
+            acc.setSegmentMask(a.getSegmentMask() | b.getSegmentMask());
 
-            if (a.position52 < b.position52) {
-                acc.time52 = a.time52;
-                acc.position52 = a.position52;
+            // Segment 52
+            if (a.getPosition52() < b.getPosition52()) {
+                acc.setTime52(a.getTime52());
+                acc.setPosition52(a.getPosition52());
             } else {
-                acc.time52 = b.time52;
-                acc.position52 = b.position52;
+                acc.setTime52(b.getTime52());
+                acc.setPosition52(b.getPosition52());
             }
 
-            if (a.position56 > b.position56) {
-                acc.time56 = a.time56;
-                acc.position56 = a.position56;
+            // Segment 56
+            if (a.getPosition56() > b.getPosition56()) {
+                acc.setTime56(a.getTime56());
+                acc.setPosition56(a.getPosition56());
             } else {
-                acc.time56 = b.time56;
-                acc.position56 = b.position56;
+                acc.setTime56(b.getTime56());
+                acc.setPosition56(b.getPosition56());
             }
 
             return acc;
@@ -279,20 +293,140 @@ public class AverageSpeedReporter {
     }
 
     /**
-     * This class is an accumulator.
+     * This class is an accumulator for {@code AverageSpeedAggregateFunction}.
      */
-    private static final class Acc {
+    public static final class Acc
+            extends Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 
-        public int vid = -1;
-        public int highway = 0;
-        public int direction = 0;
+        public Acc() {
+            super(-1, 0, 0, 0, 0, Integer.MAX_VALUE, Integer.MIN_VALUE, 0);
+        }
 
-        public int time52 = 0;
-        public int time56 = 0;
+        private static final int MASK_52 = 1;
+        private static final int MASK_53 = 2;
+        private static final int MASK_54 = 4;
+        private static final int MASK_55 = 8;
+        private static final int MASK_56 = 16;
+        private static final int ALL_MASKS = MASK_52 | MASK_53 | MASK_54 | MASK_55 | MASK_56;
 
-        public int position52 = Integer.MAX_VALUE;
-        public int position56 = Integer.MIN_VALUE;
+        private boolean getMask(int mask) {
+            return ((f7 & mask) != mask);
+        }
 
-        public boolean s52 = false, s53 = false, s54 = false, s55 = false, s56 = false;
+        private void setMask(int mask, boolean value) {
+            if (value) {
+                f7 = (f7 | mask);
+            } else {
+                f7 = (f7 & ~mask);
+            }
+        }
+
+        public int getVid() {
+            return f0;
+        }
+
+        public void setVid(int vid) {
+            f0 = vid;
+        }
+
+        public int getHighway() {
+            return f1;
+        }
+
+        public void setHighway(int highway) {
+            f1 = highway;
+        }
+
+        public int getDirection() {
+            return f2;
+        }
+
+        public void setDirection(int direction) {
+            f2 = direction;
+        }
+
+        public int getTime52() {
+            return f3;
+        }
+
+        public void setTime52(int time52) {
+            f3 = time52;
+        }
+
+        public int getTime56() {
+            return f4;
+        }
+
+        public void setTime56(int time56) {
+            f4 = time56;
+        }
+
+        public int getPosition52() {
+            return f5;
+        }
+
+        public void setPosition52(int position52) {
+            f5 = position52;
+        }
+
+        public int getPosition56() {
+            return f6;
+        }
+
+        public void setPosition56(int position56) {
+            f6 = position56;
+        }
+
+        public boolean containsAllSegments() {
+            return ((f7 & ALL_MASKS) == ALL_MASKS);
+        }
+
+        public int getSegmentMask() {
+            return f7;
+        }
+
+        public void setSegmentMask(int mask) {
+            f7 = mask;
+        }
+
+        public boolean getSegment52() {
+            return getMask(MASK_52);
+        }
+
+        public void setSegment52(boolean s52) {
+            setMask(MASK_52, s52);
+        }
+
+        public boolean getSegment53() {
+            return getMask(MASK_53);
+        }
+
+        public void setSegment53(boolean s53) {
+            setMask(MASK_53, s53);
+        }
+
+        public boolean getSegment54() {
+            return getMask(MASK_54);
+        }
+
+        public void setSegment54(boolean s54) {
+            setMask(MASK_54, s54);
+        }
+
+        public boolean getSegment55() {
+            return getMask(MASK_55);
+        }
+
+        public void setSegment55(boolean s55) {
+            setMask(MASK_55, s55);
+        }
+
+        public boolean getSegment56() {
+            return getMask(MASK_56);
+        }
+
+        public void setSegment56(boolean s56) {
+            setMask(MASK_56, s56);
+        }
     }
 }

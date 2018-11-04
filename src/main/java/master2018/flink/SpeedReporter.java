@@ -4,6 +4,7 @@ import master2018.flink.events.PrincipalEvent;
 import master2018.flink.events.SpeedEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
 public class SpeedReporter {
@@ -13,18 +14,10 @@ public class SpeedReporter {
      */
     private static final int SPEED_LIMIT = 90;
 
-
     public static SingleOutputStreamOperator<SpeedEvent> analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
-                .map(new MapFunction<PrincipalEvent, SpeedEvent>() {
-                    @Override
-                    public SpeedEvent map(PrincipalEvent t) throws Exception {
-
-                        return new SpeedEvent(t.getTime(), t.getVid(),
-                                t.getHighway(), t.getSegment(), t.getDirection(), t.getSpeed());
-                    }
-                })
+                .map(new MapToSpeedEvent())
                 .filter(new FilterFunction<SpeedEvent>() {
                     @Override
                     public boolean filter(SpeedEvent speedEvent) throws Exception {
@@ -33,4 +26,21 @@ public class SpeedReporter {
                 });
     }
 
+    /**
+     * This {@code MapFunction} maps from {@code PrincipalEvent} to {@code SpeedEvent}.
+     */
+    @FunctionAnnotation.ForwardedFields("0;1;3->2;6->3;5->4;2->5")
+    private static final class MapToSpeedEvent implements MapFunction<PrincipalEvent, SpeedEvent> {
+
+        @Override
+        public SpeedEvent map(PrincipalEvent value) throws Exception {
+
+            return new SpeedEvent(value.getTime(), // 0
+                                  value.getVid(), // 1
+                                  value.getHighway(), // 3->2
+                                  value.getSegment(), //  6->3
+                                  value.getDirection(), // 5->4
+                                  value.getSpeed()); // 2->5
+        }
+    }
 }

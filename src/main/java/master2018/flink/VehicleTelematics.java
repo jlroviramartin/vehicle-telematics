@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.logging.*;
 import master2018.flink.events.PrincipalEvent;
 import master2018.flink.functions.ParsePrincipalEventMapFunction;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -71,6 +72,7 @@ public class VehicleTelematics {
         // get the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.getConfig().enableObjectReuse();
+        env.setParallelism(1);
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
@@ -79,27 +81,25 @@ public class VehicleTelematics {
 
         // Evaluates the tuples.
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream
-                .map(new ParsePrincipalEventMapFunction());
+                .map(new ParsePrincipalEventMapFunction())
+                .setParallelism(1);
 
         // 1st test
-        /*
-        SingleOutputStreamOperator speedFines = SpeedReporter.analyze(toTuples);
-        speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+        SingleOutputStreamOperator speedReporter = SpeedReporter.analyze(toTuples);
+        speedReporter
+                .writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
-         */
 
         // 2nd test
-        // NOt yet implemented
-        SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
-        //avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
-        //        .setParallelism(1);
-
-        /*
-        SingleOutputStreamOperator avgspeedfines = FilterDataPerVehicle.analyze(toTuples, 705);
-        avgspeedfines.writeAsCsv(Paths.get(outputPath, "datapervehicle_101.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+        SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter_4.analyze(toTuples);
+        avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
-        */
 
+        // 3er test
+        SingleOutputStreamOperator accidentReporter = AccidentReporter.analyze(toTuples);
+        accidentReporter
+                .writeAsCsv(Paths.get(outputPath, "accidents.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
 
         LOG.info("Executing the jobs");
 

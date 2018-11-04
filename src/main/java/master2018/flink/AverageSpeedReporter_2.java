@@ -1,12 +1,15 @@
 package master2018.flink;
 
+import java.nio.file.Paths;
 import master2018.flink.events.AverageSpeedEvent;
+import master2018.flink.events.AverageSpeedTempEvent;
 import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
@@ -16,8 +19,8 @@ import static master2018.flink.Utils.getMilesPerHour;
 import static master2018.flink.functions.AverageSpeedBetweenSegmentsFilter.MAX;
 import static master2018.flink.functions.AverageSpeedBetweenSegmentsFilter.MIN;
 
-// 3m 53 / 5m 14s / con paralelizacion de 10: 2m 32s
-public class AverageSpeedReporter {
+// 5m 4s / 4m 43s / 5m 59s
+public class AverageSpeedReporter_2 {
 
     // Evaluates the speed fines.
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
@@ -42,7 +45,13 @@ public class AverageSpeedReporter {
                 .aggregate(new AverageSpeedAggregateFunction())
                 .setParallelism(10)
                 .filter(new AverageSpeedFinesFilterFunction());
-        return result;
+
+        String outputPath = Paths.get(VehicleTelematics.DEBUG_OUTPUTPATH).toString();
+
+        result.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+
+        return null;
     }
 
     /**
@@ -145,14 +154,17 @@ public class AverageSpeedReporter {
     private static final class MapToReducedPrincipalEventFunction
             implements MapFunction<PrincipalEvent, ReducedPrincipalEvent> {
 
+        public MapToReducedPrincipalEventFunction() {
+        }
+
         @Override
         public ReducedPrincipalEvent map(PrincipalEvent value) throws Exception {
             return new ReducedPrincipalEvent(value.getTime(), // 0->0
-                                             value.getVid(), // 1->1
-                                             value.getHighway(), // 3->2
-                                             value.getDirection(), // 5->3
-                                             value.getSegment(), // 6->4
-                                             value.getPosition()); // 7->5
+                               value.getVid(), // 1->1
+                               value.getHighway(), // 3->2
+                               value.getDirection(), // 5->3
+                               value.getSegment(), // 6->4
+                               value.getPosition()); // 7->5
         }
     }
 
@@ -175,7 +187,8 @@ public class AverageSpeedReporter {
      * This {@code AggregateFunction} aggregates the {@code ReducedPrincipalEvent} events to build
      * {@code AverageSpeedEvent}s.
      */
-    private static final class AverageSpeedAggregateFunction implements AggregateFunction<ReducedPrincipalEvent, Acc, AverageSpeedEvent> {
+    public static final class AverageSpeedAggregateFunction
+            implements AggregateFunction<ReducedPrincipalEvent, AverageSpeedTempEvent, AverageSpeedEvent> {
 
         private static final AverageSpeedEvent EMPTY = new AverageSpeedEvent(0, 0, 0, 0, 0, 0);
 
@@ -183,116 +196,111 @@ public class AverageSpeedReporter {
         }
 
         @Override
-        public Acc createAccumulator() {
-            return new Acc();
+        public AverageSpeedTempEvent createAccumulator() {
+            return new AverageSpeedTempEvent();
         }
 
         @Override
-        public void add(ReducedPrincipalEvent value, Acc accumulator) {
-            switch (value.getSegment()) {
-                case 52: {
-                    if (value.getPosition() < accumulator.position52) {
-                        if (accumulator.vid == -1) {
-                            accumulator.vid = value.getVid();
-                            accumulator.highway = value.getHighway();
-                            accumulator.direction = value.getDirection();
-                        }
+        public void add(ReducedPrincipalEvent value, AverageSpeedTempEvent accumulator) {
+            if (!accumulator.isValid()) {
+                accumulator.setTime1(value.getTime());
+                accumulator.setTime2(value.getTime());
 
-                        accumulator.s52 = true;
-                        accumulator.time52 = value.getTime();
-                        accumulator.position52 = value.getPosition();
-                    }
-                    break;
-                }
-                case 53:
-                    accumulator.s53 = true;
-                    break;
-                case 54:
-                    accumulator.s54 = true;
-                    break;
-                case 55:
-                    accumulator.s55 = true;
-                    break;
-                case 56: {
-                    if (value.getPosition() > accumulator.position56) {
-                        accumulator.s56 = true;
-                        accumulator.time56 = value.getTime();
-                        accumulator.position56 = value.getPosition();
-                    }
-                    break;
+                accumulator.setVid(value.getVid());
+                accumulator.setHighway(value.getHighway());
+                accumulator.setDirection(value.getDirection());
+
+                accumulator.setPosition1(value.getPosition());
+                accumulator.setPosition2(value.getPosition());
+                accumulator.setSegment1(value.getSegment());
+                accumulator.setSegment2(value.getSegment());
+            } else {
+                //int vid = value.getVid();
+                //int highway = value.getHighway();
+                //int direction = value.getDirection();
+                if (value.getTime() < accumulator.getTime1()) {
+                    accumulator.setTime1(value.getTime());
+                    accumulator.setPosition1(value.getPosition());
+                    accumulator.setSegment1(value.getSegment());
+                } else {
+                    accumulator.setTime2(value.getTime());
+                    accumulator.setPosition2(value.getPosition());
+                    accumulator.setSegment2(value.getSegment());
                 }
             }
         }
 
         @Override
-        public AverageSpeedEvent getResult(Acc accumulator) {
-            if (accumulator.s52 && accumulator.s53 && accumulator.s54 && accumulator.s55 && accumulator.s56) {
+        public AverageSpeedEvent getResult(AverageSpeedTempEvent accumulator) {
+            if (accumulator.getDirection() == 0) {
+                if (accumulator.getSegment1() != 52 || accumulator.getSegment2() != 56) {
+                    return EMPTY;
+                }
                 // m/s -> miles/h
-                if (accumulator.time52 < accumulator.time56) { // Incrementa
-                    int averageSpeed = getMilesPerHour(accumulator.position56 - accumulator.position52, accumulator.time56 - accumulator.time52);
-                    return new AverageSpeedEvent(accumulator.time52, accumulator.time56, accumulator.vid, accumulator.highway, 0, averageSpeed);
-                } else { // Decrementa
-                    int averageSpeed = getMilesPerHour(accumulator.position56 - accumulator.position52, accumulator.time52 - accumulator.time56);
-                    return new AverageSpeedEvent(accumulator.time56, accumulator.time52, accumulator.vid, accumulator.highway, 1, averageSpeed);
+                int averageSpeed = getMilesPerHour(accumulator.getPosition2() - accumulator.getPosition1(), accumulator.getTime2() - accumulator.getTime1());
+                if (averageSpeed <= 60) {
+                    return EMPTY;
                 }
+                return new AverageSpeedEvent(
+                        accumulator.getTime1(),
+                        accumulator.getTime2(),
+                        accumulator.getVid(),
+                        accumulator.getHighway(),
+                        accumulator.getDirection(),
+                        averageSpeed);
+            } else {
+                if (accumulator.getSegment1() != 56 || accumulator.getSegment2() != 52) {
+                    return EMPTY;
+                }
+                // m/s -> miles/h
+                int averageSpeed = getMilesPerHour(accumulator.getPosition1() - accumulator.getPosition2(), accumulator.getTime2() - accumulator.getTime1());
+                if (averageSpeed <= 60) {
+                    return EMPTY;
+                }
+                return new AverageSpeedEvent(
+                        accumulator.getTime1(),
+                        accumulator.getTime2(),
+                        accumulator.getVid(),
+                        accumulator.getHighway(),
+                        accumulator.getDirection(),
+                        averageSpeed);
             }
-            return EMPTY;
         }
 
         @Override
-        public Acc merge(Acc a, Acc b) {
-            if (a.vid == -1) {
-                return b;
-            } else if (b.vid == -1) {
-                return a;
-            }
+        public AverageSpeedTempEvent merge(AverageSpeedTempEvent a, AverageSpeedTempEvent b) {
+            int vid = a.getVid();
+            int highway = a.getHighway();
+            int direction = a.getDirection();
 
-            Acc acc = new Acc();
-            acc.vid = a.vid;
-            acc.highway = a.highway;
-            acc.direction = a.direction;
-
-            acc.s52 = a.s52 || b.s52;
-            acc.s53 = a.s53 || b.s53;
-            acc.s54 = a.s54 || b.s54;
-            acc.s55 = a.s55 || b.s55;
-            acc.s56 = a.s56 || b.s56;
-
-            if (a.position52 < b.position52) {
-                acc.time52 = a.time52;
-                acc.position52 = a.position52;
+            // Minimum
+            int time1;
+            int position1;
+            int segment1;
+            if (a.getTime1() < b.getTime1()) {
+                time1 = a.getTime1();
+                position1 = a.getPosition1();
+                segment1 = a.getSegment1();
             } else {
-                acc.time52 = b.time52;
-                acc.position52 = b.position52;
+                time1 = b.getTime1();
+                position1 = b.getPosition1();
+                segment1 = b.getSegment1();
             }
 
-            if (a.position56 > b.position56) {
-                acc.time56 = a.time56;
-                acc.position56 = a.position56;
+            // Maximum
+            int time2;
+            int position2;
+            int segment2;
+            if (a.getTime2() > b.getTime2()) {
+                time2 = a.getTime2();
+                position2 = a.getPosition2();
+                segment2 = a.getSegment2();
             } else {
-                acc.time56 = b.time56;
-                acc.position56 = b.position56;
+                time2 = b.getTime2();
+                position2 = b.getPosition2();
+                segment2 = b.getSegment2();
             }
-
-            return acc;
+            return new AverageSpeedTempEvent(time1, time2, vid, highway, direction, position1, position2, segment1, segment2);
         }
-    }
-
-    /**
-     * This class is an accumulator.
-     */
-    private static final class Acc {
-
-        public int vid = -1;
-        public int highway = 0;
-        public int direction = 0;
-
-        public int time52 = 0;
-        public int time56 = 0;
-
-        public int position52 = Integer.MAX_VALUE;
-        public int position56 = Integer.MIN_VALUE;
-
-        public boolean s52 = false, s53 = false, s54 = false, s55 = false, s56 = false;
     }
 }
