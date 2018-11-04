@@ -4,14 +4,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.*;
 import master2018.flink.events.PrincipalEvent;
-import org.apache.flink.api.common.functions.MapFunction;
+import master2018.flink.functions.ParsePrincipalEventMapFunction;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * master2018.flink.VehicleTelematics /host/flink/vehicle-data.csv /host/flink/
+ * This class is the main class for vehicle telematics.
+ * <p>
+ * Command line: master2018.flink.VehicleTelematics (source file) (output path)
+ * <p>
+ * Example: master2018.flink.VehicleTelematics /srv/flink/traffic-3xways /srv/flink/out/
+ * <p>
  */
 public class VehicleTelematics {
 
@@ -23,9 +28,8 @@ public class VehicleTelematics {
     /**
      * File for debug log.
      */
-    public final static String DEBUG_BASEPATH_DOCKER = "/host/flink";
-    public final static String DEBUG_BASEPATH_WIN = "C:\\Temp\\flink";
-    public final static String DEBUG_BASEPATH = DEBUG_BASEPATH_DOCKER;
+    //public final static String DEBUG_BASEPATH = "C:\\Temp\\flink";
+    public final static String DEBUG_BASEPATH = "/srv/flink";
     public final static String DEBUG_LOG_FILE = Paths.get(DEBUG_BASEPATH, "debug.log").toString();
     public final static String DEBUG_INPUTFILE = Paths.get(DEBUG_BASEPATH, "traffic-3xways").toString();
     public final static String DEBUG_OUTPUTPATH = Paths.get(DEBUG_BASEPATH, "out").toString();
@@ -49,7 +53,7 @@ public class VehicleTelematics {
 
             inputFile = args[0];
             if (inputFile == null || !Files.exists(Paths.get(inputFile)) || !Files.isRegularFile(Paths.get(inputFile))) {
-                throw new IllegalArgumentException("Argument 1 must be an existing file 3)");
+                throw new IllegalArgumentException("Argument 1 must be an existing file");
             }
 
             outputPath = args[1];
@@ -66,6 +70,7 @@ public class VehicleTelematics {
 
         // get the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.getConfig().enableObjectReuse();
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
@@ -74,28 +79,7 @@ public class VehicleTelematics {
 
         // Evaluates the tuples.
         SingleOutputStreamOperator<PrincipalEvent> toTuples = stream
-                .map(new MapFunction<String, PrincipalEvent>() {
-
-                    @Override
-                    public PrincipalEvent map(String in) throws Exception {
-
-                        String[] split = in.split(",");
-
-                        if (split.length < 8) {
-                            throw new Exception("This line cannot be splitted: " + in);
-                        }
-
-                        PrincipalEvent principalEvent = new PrincipalEvent(Integer.parseInt(split[0].trim()),
-                                                                           Integer.parseInt(split[1].trim()),
-                                                                           Integer.parseInt(split[2].trim()),
-                                                                           Integer.parseInt(split[3].trim()),
-                                                                           Integer.parseInt(split[4].trim()),
-                                                                           Integer.parseInt(split[5].trim()),
-                                                                           Integer.parseInt(split[6].trim()),
-                                                                           Integer.parseInt(split[7].trim()));
-                        return principalEvent;
-                    }
-                });
+                .map(new ParsePrincipalEventMapFunction());
 
         // 1st test
         /*
@@ -103,11 +87,19 @@ public class VehicleTelematics {
         speedFines.writeAsCsv(Paths.get(outputPath, "speedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
          */
+
         // 2nd test
         // NOt yet implemented
         SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
-        /*avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
-                .setParallelism(1);*/
+        //avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+        //        .setParallelism(1);
+
+        /*
+        SingleOutputStreamOperator avgspeedfines = FilterDataPerVehicle.analyze(toTuples, 705);
+        avgspeedfines.writeAsCsv(Paths.get(outputPath, "datapervehicle_101.csv").toString(), FileSystem.WriteMode.OVERWRITE)
+                .setParallelism(1);
+        */
+
 
         LOG.info("Executing the jobs");
 

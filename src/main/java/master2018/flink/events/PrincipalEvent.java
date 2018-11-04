@@ -13,11 +13,10 @@ public final class PrincipalEvent
     // direction - f5
     // segment - f6
     // position - f7
-
     public static final int VID = 1;
     public static final int HIGHWAY = 3;
     public static final int DIRECTION = 5;
-    
+    public static final int SEGMENT = 6;
 
     public PrincipalEvent() {
     }
@@ -97,4 +96,17 @@ public final class PrincipalEvent
         f7 = position;
     }
 
+
+    public void set(PrincipalEvent ev) {
+        this.f0 = ev.f0;
+        this.f1 = ev.f1;
+        this.f2 = ev.f2;
+        this.f3 = ev.f3;
+        this.f4 = ev.f4;
+        this.f5 = ev.f5;
+        this.f6 = ev.f6;
+        this.f7 = ev.f7;
+    }
+
+    public static final PrincipalEvent EMPTY = new PrincipalEvent(-1, 0, 0, 0, 0, 0, 0, 0);
 }

@@ -6,6 +6,7 @@
 package master2018.flink.functions;
 
 import java.util.Iterator;
+import master2018.flink.Utils;
 import master2018.flink.events.AverageSpeedEvent;
 import master2018.flink.events.PrincipalEvent;
 import org.apache.flink.api.java.tuple.Tuple;
@@ -20,10 +21,6 @@ public final class AverageSpeedWindowFunction
         implements WindowFunction<PrincipalEvent, AverageSpeedEvent, Tuple, TimeWindow> {
 
     public AverageSpeedWindowFunction() {
-    }
-
-    public static int getMilesPerHour(int metersPerSecond) {
-        return (int) Math.floor(metersPerSecond * 2.23694);
     }
 
     @Override
@@ -66,7 +63,7 @@ public final class AverageSpeedWindowFunction
         if ((direction == 0 && segment2 == 56)
             || (direction == 1 && segment2 == 52)) {
 
-            int averageSpeed = getMilesPerHour(Math.abs(position2 - position1) / (time2 - time1));
+            int averageSpeed = Utils.getMilesPerHour(Math.abs(position2 - position1), time2 - time1);
             if (averageSpeed > 60) {
 
                 AverageSpeedEvent result = new AverageSpeedEvent(
