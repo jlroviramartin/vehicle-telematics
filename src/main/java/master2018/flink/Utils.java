@@ -15,18 +15,21 @@ import java.util.Iterator;
 public class Utils {
 
     /**
-     * This method convert meters per second miles per hour.
+     * This method converts meters per second to miles per hour.
      */
     /*public static int getMilesPerHour(int metersPerSecond) {
         return (int) Math.floor(metersPerSecond * 2.23694);
     }*/
     /**
-     * This method convert meters per second miles per hour.
+     * This method converts meters per second to miles per hour.
      */
     public static int getMilesPerHour(int meters, int seconds) {
         return (int) Math.floor((meters * 2.23694) / seconds);
     }
 
+    /**
+     * This method calculates the size of the input.
+     */
     public static <T> int size(Iterable<T> input) {
         if (input instanceof Collection) {
             return ((Collection) input).size();
@@ -38,6 +41,9 @@ public class Utils {
         return count;
     }
 
+    /**
+     * This method clears the input.
+     */
     public static <T> void clear(Iterable<T> input) {
         if (input instanceof Collection) {
             ((Collection) input).clear();
@@ -45,5 +51,12 @@ public class Utils {
         for (Iterator<T> it = input.iterator(); it.hasNext(); it.next()) {
             it.remove();
         }
+    }
+
+    /**
+     * This method calculates the segment based on the position.
+     */
+    public static int getSegment(int position) {
+        return position / 5280;
     }
 }

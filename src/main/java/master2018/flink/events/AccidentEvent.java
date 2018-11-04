@@ -12,18 +12,17 @@ public final class AccidentEvent
     // segment - f4
     // direction - f5
     // position - f6
-
     public AccidentEvent() {
     }
 
     public AccidentEvent(int time1, int time2, int vid, int highway, int segment, int direction, int position) {
-        f0 = time1;
-        f1 = time2;
-        f2 = vid;
-        f3 = highway;
-        f4 = segment;
-        f5 = direction;
-        f6 = position;
+        setTime1(time1);
+        setTime2(time2);
+        setVid(vid);
+        setHighway(highway);
+        setSegment(segment);
+        setDirection(direction);
+        setPosition(position);
     }
 
     public int getTime1() {

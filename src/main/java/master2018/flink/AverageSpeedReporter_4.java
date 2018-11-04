@@ -124,12 +124,12 @@ public class AverageSpeedReporter_4 {
         }
 
         public void set(ReducedPrincipalEvent ev) {
-            this.f0 = ev.f0;
-            this.f1 = ev.f1;
-            this.f2 = ev.f2;
-            this.f3 = ev.f3;
-            this.f4 = ev.f4;
-            this.f5 = ev.f5;
+            setTime(ev.getTime());
+            setVid(ev.getVid());
+            setHighway(ev.getHighway());
+            setDirection(ev.getDirection());
+            setSegment(ev.getSegment());
+            setPosition(ev.getPosition());
         }
 
         public boolean isValid() {

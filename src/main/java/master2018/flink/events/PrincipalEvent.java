@@ -98,14 +98,14 @@ public final class PrincipalEvent
     }
 
     public void set(PrincipalEvent ev) {
-        this.f0 = ev.f0;
-        this.f1 = ev.f1;
-        this.f2 = ev.f2;
-        this.f3 = ev.f3;
-        this.f4 = ev.f4;
-        this.f5 = ev.f5;
-        this.f6 = ev.f6;
-        this.f7 = ev.f7;
+        setTime(ev.getTime());
+        setVid(ev.getVid());
+        setSpeed(ev.getSpeed());
+        setLane(ev.getLane());
+        setHighway(ev.getHighway());
+        setDirection(ev.getDirection());
+        setSegment(ev.getSegment());
+        setPosition(ev.getPosition());
     }
 
     public static final PrincipalEvent EMPTY = new PrincipalEvent(-1, 0, 0, 0, 0, 0, 0, 0);

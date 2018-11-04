@@ -132,12 +132,12 @@ public class AverageSpeedReporter_2 {
         }
 
         public void set(ReducedPrincipalEvent ev) {
-            this.f0 = ev.f0;
-            this.f1 = ev.f1;
-            this.f2 = ev.f2;
-            this.f3 = ev.f3;
-            this.f4 = ev.f4;
-            this.f5 = ev.f5;
+            setTime(ev.getTime());
+            setVid(ev.getVid());
+            setHighway(ev.getHighway());
+            setDirection(ev.getDirection());
+            setSegment(ev.getSegment());
+            setPosition(ev.getPosition());
         }
 
         public boolean isValid() {
@@ -160,11 +160,11 @@ public class AverageSpeedReporter_2 {
         @Override
         public ReducedPrincipalEvent map(PrincipalEvent value) throws Exception {
             return new ReducedPrincipalEvent(value.getTime(), // 0->0
-                               value.getVid(), // 1->1
-                               value.getHighway(), // 3->2
-                               value.getDirection(), // 5->3
-                               value.getSegment(), // 6->4
-                               value.getPosition()); // 7->5
+                                             value.getVid(), // 1->1
+                                             value.getHighway(), // 3->2
+                                             value.getDirection(), // 5->3
+                                             value.getSegment(), // 6->4
+                                             value.getPosition()); // 7->5
         }
     }
 
