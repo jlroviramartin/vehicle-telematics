@@ -36,6 +36,7 @@ coverage
 
 # Compiled binary .class
 out/
+/target/
 
 # Optional eslint cache
 .eslintcache
@@ -47,4 +48,6 @@ out/
 # IDE
 .idea/
 *.iml
-/target/
+
+#Results from execution
+output/
