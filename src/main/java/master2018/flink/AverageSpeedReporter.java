@@ -44,6 +44,7 @@ public class AverageSpeedReporter {
                     .setParallelism(10);
             splitsByDirection.add(splitByDirection);
         }
+
         return Utils.union(splitsByDirection)
                 .filter(new AverageSpeedFinesFilterFunction())
                 .map(new AverageSpeedEventMapFunction());
