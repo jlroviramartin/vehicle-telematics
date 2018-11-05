@@ -91,7 +91,7 @@ public class VehicleTelematics {
                 .setParallelism(1);
 
         // 2nd test
-        SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter_4.analyze(toTuples);
+        SingleOutputStreamOperator avgspeedfines = AverageSpeedReporter.analyze(toTuples);
         avgspeedfines.writeAsCsv(Paths.get(outputPath, "avgspeedfines.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
 

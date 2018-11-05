@@ -5,8 +5,12 @@
  */
 package master2018.flink;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import org.apache.flink.streaming.api.datastream.DataStream;
 
 /**
  *
@@ -53,10 +57,33 @@ public class Utils {
         }
     }
 
+    public final static int SEGMENT_SIZE = 5280;
+
     /**
      * This method calculates the segment based on the position.
      */
     public static int getSegment(int position) {
-        return position / 5280;
+        return position / SEGMENT_SIZE;
+    }
+
+    public static <T, T2 extends DataStream<T>> DataStream<T> union(Collection<T2> items) throws Exception {
+
+        Iterator<T2> iterator = items.iterator();
+        if (!iterator.hasNext()) {
+            throw new Exception("It must contains at least one item");
+        }
+        T2 first = iterator.next();
+        List<T2> others = new ArrayList<T2>();
+        while (iterator.hasNext()) {
+            others.add(iterator.next());
+        }
+        if (others.isEmpty()) {
+            return first;
+        }
+        return first.union(others.toArray(new DataStream[others.size()]));
+    }
+
+    public static <T, T2 extends DataStream<T>> DataStream<T> union(DataStream<T2>... items) throws Exception {
+        return (DataStream<T>) union(Arrays.asList(items));
     }
 }

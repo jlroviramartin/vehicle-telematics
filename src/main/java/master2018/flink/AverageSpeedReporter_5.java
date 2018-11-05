@@ -66,12 +66,11 @@ public class AverageSpeedReporter_5 {
         public ReducedPrincipalEvent() {
         }
 
-        public ReducedPrincipalEvent(int time, int vid, int highway, int direction, int segment, int position) {
+        public ReducedPrincipalEvent(int time, int vid, int highway, int direction, int position) {
             setTime(time);
             setVid(vid);
             setHighway(highway);
             setDirection(direction);
-            setSegment(segment);
             setPosition(position);
         }
 
@@ -108,19 +107,15 @@ public class AverageSpeedReporter_5 {
         }
 
         public int getSegment() {
-            return f4;
-        }
-
-        public void setSegment(int segment) {
-            f4 = segment;
+            return Utils.getSegment(getPosition());
         }
 
         public int getPosition() {
-            return f5;
+            return f4;
         }
 
         public void setPosition(int position) {
-            f5 = position;
+            f4 = position;
         }
 
         public void set(ReducedPrincipalEvent ev) {
@@ -128,7 +123,6 @@ public class AverageSpeedReporter_5 {
             setVid(ev.getVid());
             setHighway(ev.getHighway());
             setDirection(ev.getDirection());
-            setSegment(ev.getSegment());
             setPosition(ev.getPosition());
         }
 
@@ -136,13 +130,13 @@ public class AverageSpeedReporter_5 {
             return this.getTime() >= 0;
         }
 
-        public static final ReducedPrincipalEvent EMPTY = new ReducedPrincipalEvent(-1, 0, 0, 0, 0, 0);
+        public static final ReducedPrincipalEvent EMPTY = new ReducedPrincipalEvent(-1, 0, 0, 0, 0);
     }
 
     /**
      * This {@code MapFunction} maps from {@code PrincipalEvent} to {@code ReducedPrincipalEvent}.
      */
-    @FunctionAnnotation.ForwardedFields("0;1;3->2;5->3;6->4;7->5")
+    @FunctionAnnotation.ForwardedFields("0;1;3->2;5->3;7->4")
     private static final class MapToReducedPrincipalEventFunction
             implements MapFunction<PrincipalEvent, ReducedPrincipalEvent> {
 
@@ -152,8 +146,7 @@ public class AverageSpeedReporter_5 {
                                              value.getVid(), // 1->1
                                              value.getHighway(), // 3->2
                                              value.getDirection(), // 5->3
-                                             value.getSegment(), // 6->4
-                                             value.getPosition()); // 7->5
+                                             value.getPosition()); // 7->4
         }
     }
 

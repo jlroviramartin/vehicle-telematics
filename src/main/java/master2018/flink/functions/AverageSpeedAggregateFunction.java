@@ -37,14 +37,11 @@ public class AverageSpeedAggregateFunction implements AggregateFunction<Principa
             accumulator.setSegment1(value.getSegment());
             accumulator.setSegment2(value.getSegment());
         } else {
-            //int vid = value.getVid();
-            //int highway = value.getHighway();
-            //int direction = value.getDirection();
             if (value.getTime() < accumulator.getTime1()) {
                 accumulator.setTime1(value.getTime());
                 accumulator.setPosition1(value.getPosition());
                 accumulator.setSegment1(value.getSegment());
-            } else {
+            } else if (value.getTime() > accumulator.getTime2()) {
                 accumulator.setTime2(value.getTime());
                 accumulator.setPosition2(value.getPosition());
                 accumulator.setSegment2(value.getSegment());
@@ -59,6 +56,12 @@ public class AverageSpeedAggregateFunction implements AggregateFunction<Principa
 
     @Override
     public AverageSpeedTempEvent merge(AverageSpeedTempEvent a, AverageSpeedTempEvent b) {
+        if (!a.isValid()) {
+            return b;
+        } else if (!b.isValid()) {
+            return a;
+        }
+
         int vid = a.getVid();
         int highway = a.getHighway();
         int direction = a.getDirection();
@@ -90,6 +93,7 @@ public class AverageSpeedAggregateFunction implements AggregateFunction<Principa
             position2 = b.getPosition2();
             segment2 = b.getSegment2();
         }
+
         return new AverageSpeedTempEvent(time1, time2, vid, highway, direction, position1, position2, segment1, segment2);
     }
 }
