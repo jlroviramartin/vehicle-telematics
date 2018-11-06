@@ -1,13 +1,14 @@
 package master2018.flink.functions;
 
-import java.util.Iterator;
-import master2018.flink.Utils;
 import master2018.flink.events.AccidentEvent;
 import master2018.flink.events.PrincipalEvent;
+import master2018.flink.libs.Utils;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.util.Collector;
+
+import java.util.Iterator;
 
 public final class AccidentWindowFunction
         implements WindowFunction<PrincipalEvent, AccidentEvent, Tuple, GlobalWindow> {
@@ -21,10 +22,8 @@ public final class AccidentWindowFunction
 
             PrincipalEvent firstEvent = events.next();
 
-            boolean consecutiveEvents = true;
-
             PrincipalEvent lastEvent = firstEvent; // Avoid "can be null"
-            while (events.hasNext() && consecutiveEvents) {
+            while (events.hasNext()) {
                 lastEvent = events.next();
             }
 
