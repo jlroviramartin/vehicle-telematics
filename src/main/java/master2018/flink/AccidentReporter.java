@@ -17,6 +17,7 @@ public class AccidentReporter {
                        PrincipalEvent.SEGMENT,
                        PrincipalEvent.POSITION) // key stream by vid, highway, direction, segment, position
                 .countWindow(4, 1) // Slide window, start each one event
-                .apply(new AccidentWindowFunction());
+                .apply(new AccidentWindowFunction())
+                .setParallelism(10);
     }
 }

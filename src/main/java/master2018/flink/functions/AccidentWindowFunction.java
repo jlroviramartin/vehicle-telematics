@@ -20,15 +20,16 @@ public final class AccidentWindowFunction
             Iterator<PrincipalEvent> events = iterable.iterator();
 
             PrincipalEvent firstEvent = events.next();
-            int time1 = firstEvent.getTime();
+
+            boolean consecutiveEvents = true;
 
             PrincipalEvent lastEvent = firstEvent; // Avoid "can be null"
-            while (events.hasNext()) {
+            while (events.hasNext() && consecutiveEvents) {
                 lastEvent = events.next();
             }
 
             AccidentEvent accidentEvent = new AccidentEvent();
-            accidentEvent.setTime1(time1);
+            accidentEvent.setTime1(firstEvent.getTime());
             accidentEvent.setTime2(lastEvent.getTime());
             accidentEvent.setVid(firstEvent.getVid());
             accidentEvent.setHighway(firstEvent.getHighway());
