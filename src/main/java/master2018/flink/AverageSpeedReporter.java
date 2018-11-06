@@ -10,6 +10,7 @@ import master2018.flink.functions.AverageSpeedAggregateFunction;
 import master2018.flink.functions.AverageSpeedBetweenSegmentsFilter;
 import master2018.flink.functions.DirectionOutputSelector;
 import master2018.flink.functions.PrincipalEventTimestampExtractor;
+import master2018.flink.libs.Utils;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -18,7 +19,7 @@ import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
-import static master2018.flink.Utils.getMilesPerHour;
+import static master2018.flink.libs.Utils.getMilesPerHour;
 
 // 1m 14s
 public class AverageSpeedReporter {
