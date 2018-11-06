@@ -40,12 +40,16 @@ public class VehicleTelematics {
 
         // get the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // Enable object reuse to increase pereformance
         env.getConfig().enableObjectReuse();
+
+        // Ensure that the paralelism is 1 by default
         env.setParallelism(1);
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-        // get input data by connecting to the socket
+        // get input data by reading a text file
         DataStream<String> stream = env.readTextFile(inputFile);
 
         // Evaluates the tuples.
