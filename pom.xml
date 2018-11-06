@@ -22,7 +22,7 @@ under the License.
 
 	<groupId>master2018</groupId>
 	<artifactId>VehicleTelematics</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>jar</packaging>
 
 	<name>Vehicle Telematics</name>

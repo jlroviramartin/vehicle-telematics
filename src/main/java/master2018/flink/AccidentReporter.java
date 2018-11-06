@@ -6,7 +6,6 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
 public class AccidentReporter {
 
-    // 40s
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
