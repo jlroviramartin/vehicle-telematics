@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package master2018.flink.functions;
 
 import master2018.flink.events.PrincipalEvent;
@@ -13,11 +8,10 @@ import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExt
  */
 public final class PrincipalEventTimestampExtractor extends AscendingTimestampExtractor<PrincipalEvent> {
 
-    public final static int MILLISECONDS = 1000;
+    private final static int MILLISECONDS = 1000;
 
     @Override
     public long extractAscendingTimestamp(PrincipalEvent element) {
-        int newTime = element.getTime() * MILLISECONDS; // milliseconds
-        return newTime;
+        return element.getTime() * MILLISECONDS; // milliseconds
     }
 }
