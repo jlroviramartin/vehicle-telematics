@@ -3,12 +3,19 @@ package master2018.flink.events;
 import org.apache.flink.api.java.tuple.Tuple9;
 
 /**
- * Time1 (0), Time2 (1), VID (2), XWay (3), Dir (4), Pos1 (5), Pos2 (6), Seg1 (7), Seg2 (8)
+ * This class represents a vehicle that drives between the segments 52 and 56. It is used in the
+ * {@code AverageSpeedReporter}.
+ * <p>
+ * time1 (f0), time2 (f1), vid (f2), highway (f3), direction (f4), position1 (f5), position2 (6f), segment1 (f7), segment2 (f8)
  */
-public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
+public final class AverageSpeedTempEvent
+        extends Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
+
+    public static final int VID = 2;
+    public static final int HIGHWAY = 3;
+    public static final int DIRECTION = 4;
 
     public AverageSpeedTempEvent() {
-        this(-1, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     public AverageSpeedTempEvent(PrincipalEvent value) {
@@ -36,7 +43,7 @@ public final class AverageSpeedTempEvent extends Tuple9<Integer, Integer, Intege
     }
 
     public boolean isValid() {
-        return this.getTime1() >= 0;
+        return this.f0 != null;
     }
 
     public int getTime1() {
