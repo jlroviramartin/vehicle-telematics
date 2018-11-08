@@ -2,17 +2,14 @@ package master2018.flink.events;
 
 import org.apache.flink.api.java.tuple.Tuple8;
 
+/**
+ * This class represents an event that arrives to the system.
+ * <p>
+ * time (f0), vid (f1), speed (f2), highway (f3), lane (f4), direction (f5), segment (f6), position (f7)
+ */
 public final class PrincipalEvent
         extends Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 
-    // time - f0
-    // vid - f1
-    // speed - f2
-    // highway - f3
-    // lane - f4
-    // direction - f5
-    // segment - f6
-    // position - f7
     public static final int VID = 1;
     public static final int HIGHWAY = 3;
     public static final int DIRECTION = 5;
