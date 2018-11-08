@@ -1,8 +1,7 @@
 package master2018.flink.libs;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-
 import java.util.*;
+import org.apache.flink.streaming.api.datastream.DataStream;
 
 public class Utils {
 
@@ -10,7 +9,7 @@ public class Utils {
      * This method converts meters per second to miles per hour.
      */
     public static int getMilesPerHour(int meters, int seconds) {
-        return (int) Math.floor((meters * 2.23694) / seconds);
+        return (int)((meters * 2.23694) / seconds);
     }
 
     /**
