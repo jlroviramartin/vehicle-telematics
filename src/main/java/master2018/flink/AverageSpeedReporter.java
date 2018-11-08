@@ -13,6 +13,7 @@ import master2018.flink.functions.PrincipalEventTimestampExtractor;
 import master2018.flink.libs.Utils;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.datastream.SplitStream;
@@ -21,10 +22,11 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 
 import static master2018.flink.libs.Utils.getMilesPerHour;
 
-// 1m 14s
-public class AverageSpeedReporter {
+/**
+ * This class evaluates the speed fines between the segments 52 an 56.
+ */
+public final class AverageSpeedReporter {
 
-    // Evaluates the speed fines.
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) throws Exception {
 
         SplitStream<PrincipalEvent> split = tuples
@@ -50,7 +52,7 @@ public class AverageSpeedReporter {
     /**
      * This class filter {@code AverageSpeedTempEvent} to detect fines.
      */
-    private static class AverageSpeedFinesFilterFunction implements FilterFunction<AverageSpeedTempEvent> {
+    private static final class AverageSpeedFinesFilterFunction implements FilterFunction<AverageSpeedTempEvent> {
 
         public AverageSpeedFinesFilterFunction() {
         }
@@ -78,7 +80,8 @@ public class AverageSpeedReporter {
     /**
      * This class maps from {@code AverageSpeedTempEvent} to {@code AverageSpeedEvent};
      */
-    private static class AverageSpeedEventMapFunction implements MapFunction<AverageSpeedTempEvent, AverageSpeedEvent> {
+    @FunctionAnnotation.ForwardedFields("f0; f1; f2; f3; f4")
+    private static final class AverageSpeedEventMapFunction implements MapFunction<AverageSpeedTempEvent, AverageSpeedEvent> {
 
         public AverageSpeedEventMapFunction() {
         }
@@ -87,19 +90,19 @@ public class AverageSpeedReporter {
         public AverageSpeedEvent map(AverageSpeedTempEvent value) throws Exception {
             if (value.getDirection() == 0) {
                 return new AverageSpeedEvent(
-                        value.getTime1(),
-                        value.getTime2(),
-                        value.getVid(),
-                        value.getHighway(),
-                        value.getDirection(),
-                        getMilesPerHour(value.getPosition2() - value.getPosition1(), value.getTime2() - value.getTime1()));
+                        value.getTime1(),// 0
+                        value.getTime2(), // 1
+                        value.getVid(), // 2
+                        value.getHighway(), // 3
+                        value.getDirection(), // 4
+                        getMilesPerHour(value.getPosition2() - value.getPosition1(), value.getTime2() - value.getTime1())); // 5
             } else {
                 return new AverageSpeedEvent(
-                        value.getTime1(),
-                        value.getTime2(),
-                        value.getVid(),
-                        value.getHighway(),
-                        value.getDirection(),
+                        value.getTime1(), // 0
+                        value.getTime2(), // 1
+                        value.getVid(), // 2
+                        value.getHighway(), // 3
+                        value.getDirection(), // 4
                         getMilesPerHour(value.getPosition1() - value.getPosition2(), value.getTime2() - value.getTime1()));
             }
         }
