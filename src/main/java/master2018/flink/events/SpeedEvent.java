@@ -2,14 +2,14 @@ package master2018.flink.events;
 
 import org.apache.flink.api.java.tuple.Tuple6;
 
-public final class SpeedEvent extends Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> {
+/**
+ * This class represents a vehicle that drives too fast. It is used in the {@code SpeedReporter}.
+ * <p>
+ * time (f0), vid (f1), highway (f2), segment (f3), direction (f4), speed (f5)
+ */
+public final class SpeedEvent
+        extends Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> {
 
-    // time - f0
-    // vid - f1
-    // highway - f2
-    // segment - f3
-    // direction - f4
-    // speed - f5
     public SpeedEvent() {
     }
 
