@@ -2,16 +2,14 @@ package master2018.flink.events;
 
 import org.apache.flink.api.java.tuple.Tuple7;
 
+/**
+ * This class represents an accident on a highway. It is used in the {@code AccidentReporter}.
+ * <p>
+ * time1 (f0), time1 (f1), vid (f2), highway (f3), segment (f4), direction (f5), position (f6)
+ */
 public final class AccidentEvent
         extends Tuple7<Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
 
-    // time1 - f0
-    // time1 - f1
-    // vid - f2
-    // highway - f3
-    // segment - f4
-    // direction - f5
-    // position - f6
     public AccidentEvent() {
     }
 
