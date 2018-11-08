@@ -3,7 +3,10 @@ package master2018.flink.events;
 import org.apache.flink.api.java.tuple.Tuple6;
 
 /**
- * Time1 Time2 VID XWay Dir AvgSpd
+ * This class represents a vehicle that drives too fast between the segments 52 and 56. It is used in the
+ * {@code AverageSpeedReporter}.
+ * <p>
+ * time1 (f0), time2 (f1), vid (f2), highway (f3), direction (f4), averageSpeed (f5)
  */
 public final class AverageSpeedEvent
         extends Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> {
