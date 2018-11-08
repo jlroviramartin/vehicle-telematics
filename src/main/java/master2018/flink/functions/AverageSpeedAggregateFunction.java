@@ -7,7 +7,7 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 /**
  * This class aggregates {@code PrincipalEvent} events to {@code AverageSpeedTempEvent}.
  */
-public class AverageSpeedAggregateFunction implements AggregateFunction<PrincipalEvent, AverageSpeedTempEvent, AverageSpeedTempEvent> {
+public final class AverageSpeedAggregateFunction implements AggregateFunction<PrincipalEvent, AverageSpeedTempEvent, AverageSpeedTempEvent> {
 
     public AverageSpeedAggregateFunction() {
     }
