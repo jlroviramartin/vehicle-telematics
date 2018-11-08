@@ -4,9 +4,13 @@ import master2018.flink.events.PrincipalEvent;
 import master2018.flink.events.SpeedEvent;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
-public class SpeedReporter {
+/**
+ * This class evaluates the speed fines.
+ */
+public final class SpeedReporter {
 
     /**
      * Speed limit used for calculating fines.
@@ -28,7 +32,7 @@ public class SpeedReporter {
     /**
      * This {@code MapFunction} maps from {@code PrincipalEvent} to {@code SpeedEvent}.
      */
-    //@FunctionAnnotation.ForwardedFields("0;1;3->2;6->3;5->4;2->5")
+    @FunctionAnnotation.ForwardedFields("f0; f1; f3->f2; f6->f3; f5->f4; f2->f5")
     private static final class MapToSpeedEvent implements MapFunction<PrincipalEvent, SpeedEvent> {
 
         @Override
