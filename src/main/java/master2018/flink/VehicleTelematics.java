@@ -38,7 +38,7 @@ public class VehicleTelematics {
             throw new IllegalArgumentException("Argument 2 must be an existing directory");
         }
 
-        // get the execution environment
+        // Get the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // Enable object reuse to increase pereformance
@@ -49,7 +49,7 @@ public class VehicleTelematics {
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-        // get input data by reading a text file
+        // Get input data by reading a text file
         DataStream<String> stream = env.readTextFile(inputFile);
 
         // Evaluates the tuples.
