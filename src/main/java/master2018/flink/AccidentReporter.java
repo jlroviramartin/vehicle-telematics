@@ -4,7 +4,10 @@ import master2018.flink.events.PrincipalEvent;
 import master2018.flink.functions.AccidentWindowFunction;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 
-public class AccidentReporter {
+/**
+ * This class evaluates the accidents on the highways.
+ */
+public final class AccidentReporter {
 
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
