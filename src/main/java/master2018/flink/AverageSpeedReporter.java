@@ -12,15 +12,11 @@ import master2018.flink.functions.PrincipalEventTimestampExtractor;
 import master2018.flink.libs.Utils;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.java.functions.FunctionAnnotation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.util.Collector;
 
 import static master2018.flink.libs.Utils.getMilesPerHour;
 
@@ -48,10 +44,6 @@ public final class AverageSpeedReporter {
                             : new WestAverageSpeedAggregateFunction())
                     .setParallelism(10)
                     .filter(new AverageSpeedFilterFunction())
-                    //.flatMap(new AverageSpeedEventFlatMapFunction())
-                    //.filter(new AverageSpeedFinesFilterFunction())
-                    //.setParallelism(10)
-                    //.map(new AverageSpeedEventMapFunction())
                     .setParallelism(10);
             splitsByDirection.add(splitByDirection);
         }
@@ -60,113 +52,8 @@ public final class AverageSpeedReporter {
     }
 
     /**
-     * This class filter {@code AverageSpeedTempEvent} to detect fines.
+     * This class filters vehicles that drive faster then 60mph.
      */
-    private static final class AverageSpeedFinesFilterFunction implements FilterFunction<AverageSpeedTempEvent> {
-
-        private final static byte MIN = 52;
-        private final static byte MAX = 56;
-        private final static byte SPEED = 60;
-
-        public AverageSpeedFinesFilterFunction() {
-        }
-
-        @Override
-        public boolean filter(AverageSpeedTempEvent value) throws Exception {
-            if (value.getDirection() == (byte) 0) {
-                if (value.getSegment1() != MIN || value.getSegment2() != MAX) {
-                    return false;
-                }
-                // m/s -> miles/h
-                byte averageSpeed = getMilesPerHour(value.getPosition2() - value.getPosition1(), value.getTime2() - value.getTime1());
-                return (averageSpeed > SPEED);
-            } else {
-                if (value.getSegment1() != MAX || value.getSegment2() != MIN) {
-                    return false;
-                }
-                // m/s -> miles/h
-                byte averageSpeed = getMilesPerHour(value.getPosition1() - value.getPosition2(), value.getTime2() - value.getTime1());
-                return (averageSpeed > SPEED);
-            }
-        }
-    }
-
-    /**
-     * This class maps from {@code AverageSpeedTempEvent} to {@code AverageSpeedEvent};
-     */
-    @FunctionAnnotation.ForwardedFields("f0; f1; f2; f3; f4")
-    private static final class AverageSpeedEventMapFunction implements MapFunction<AverageSpeedTempEvent, AverageSpeedEvent> {
-
-        public AverageSpeedEventMapFunction() {
-        }
-
-        @Override
-        public AverageSpeedEvent map(AverageSpeedTempEvent value) throws Exception {
-            if (value.getDirection() == (byte) 0) {
-                return new AverageSpeedEvent(
-                        value.getTime1(),// 0
-                        value.getTime2(), // 1
-                        value.getVid(), // 2
-                        value.getHighway(), // 3
-                        value.getDirection(), // 4
-                        getMilesPerHour(value.getPosition2() - value.getPosition1(), value.getTime2() - value.getTime1())); // 5
-            } else {
-                return new AverageSpeedEvent(
-                        value.getTime1(), // 0
-                        value.getTime2(), // 1
-                        value.getVid(), // 2
-                        value.getHighway(), // 3
-                        value.getDirection(), // 4
-                        getMilesPerHour(value.getPosition1() - value.getPosition2(), value.getTime2() - value.getTime1()));
-            }
-        }
-    }
-
-    @FunctionAnnotation.ForwardedFields("f0; f1; f2; f3; f4")
-    private static final class AverageSpeedEventFlatMapFunction implements FlatMapFunction<AverageSpeedTempEvent, AverageSpeedEvent> {
-
-        private final static byte MIN = 52;
-        private final static byte MAX = 56;
-        private final static byte SPEED = 60;
-
-        public AverageSpeedEventFlatMapFunction() {
-        }
-
-        @Override
-        public void flatMap(AverageSpeedTempEvent value, Collector<AverageSpeedEvent> out) throws Exception {
-            if (value.getTime1() < 0) {
-                return;
-            }
-
-            byte averageSpeed;
-            if (value.getDirection() == 0) {
-                if (value.getSegment1() != MIN || value.getSegment2() != MAX) {
-                    return;
-                }
-
-                // m/s -> miles/h
-                averageSpeed = getMilesPerHour(value.getPosition2() - value.getPosition1(), value.getTime2() - value.getTime1());
-            } else {
-                if (value.getSegment1() != MAX || value.getSegment2() != MIN) {
-                    return;
-                }
-
-                // m/s -> miles/h
-                averageSpeed = getMilesPerHour(value.getPosition1() - value.getPosition2(), value.getTime2() - value.getTime1());
-            }
-
-            if (averageSpeed > SPEED) {
-                out.collect(new AverageSpeedEvent(
-                        value.getTime1(),// 0
-                        value.getTime2(), // 1
-                        value.getVid(), // 2
-                        value.getHighway(), // 3
-                        value.getDirection(), // 4
-                        averageSpeed)); // 5
-            }
-        }
-    }
-
     private static final class AverageSpeedFilterFunction implements FilterFunction<AverageSpeedEvent> {
 
         private final static byte SPEED = 60;
@@ -180,6 +67,9 @@ public final class AverageSpeedReporter {
         }
     }
 
+    /**
+     * This class aggregates the data for vehicles thar drive to the East.
+     */
     public static final class EastAverageSpeedAggregateFunction implements AggregateFunction<PrincipalEvent, AverageSpeedTempEvent, AverageSpeedEvent> {
 
         private static final int EMPTY = -1;
@@ -268,6 +158,9 @@ public final class AverageSpeedReporter {
         }
     }
 
+    /**
+     * This class aggregates the data for vehicles thar drive to the Weast.
+     */
     public static final class WestAverageSpeedAggregateFunction implements AggregateFunction<PrincipalEvent, AverageSpeedTempEvent, AverageSpeedEvent> {
 
         private static final int EMPTY = -1;
