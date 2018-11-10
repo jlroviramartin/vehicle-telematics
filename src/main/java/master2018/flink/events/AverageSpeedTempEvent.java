@@ -6,10 +6,11 @@ import org.apache.flink.api.java.tuple.Tuple9;
  * This class represents a vehicle that drives between the segments 52 and 56. It is used in the
  * {@code AverageSpeedReporter}.
  * <p>
- * time1 (f0), time2 (f1), vid (f2), highway (f3), direction (f4), position1 (f5), position2 (6f), segment1 (f7), segment2 (f8)
+ * time1 (f0), time2 (f1), vid (f2), highway (f3), direction (f4), position1 (f5), position2 (6f), segment1 (f7),
+ * segment2 (f8)
  */
 public final class AverageSpeedTempEvent
-        extends Tuple9<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
+        extends Tuple9<Integer, Integer, Integer, Integer, Byte, Integer, Integer, Byte, Byte> {
 
     public static final int VID = 2;
     public static final int HIGHWAY = 3;
@@ -18,19 +19,7 @@ public final class AverageSpeedTempEvent
     public AverageSpeedTempEvent() {
     }
 
-    public AverageSpeedTempEvent(PrincipalEvent value) {
-        this(value.getTime(),
-             value.getTime(),
-             value.getVid(),
-             value.getHighway(),
-             value.getDirection(),
-             value.getPosition(),
-             value.getPosition(),
-             value.getSegment(),
-             value.getSegment());
-    }
-
-    public AverageSpeedTempEvent(int time1, int time2, int vid, int highway, int direction, int position1, int position2, int segment1, int segment2) {
+    public AverageSpeedTempEvent(int time1, int time2, int vid, int highway, byte direction, int position1, int position2, byte segment1, byte segment2) {
         setTime1(time1);
         setTime2(time2);
         setVid(vid);
@@ -42,8 +31,24 @@ public final class AverageSpeedTempEvent
         setSegment2(segment2);
     }
 
-    public boolean isValid() {
-        return this.f0 != null;
+    public void setInitial(int time, int position, byte segment, int vid, int highway, byte direction) {
+        setVid(vid);
+        setHighway(highway);
+        setDirection(direction);
+
+        setTime1(time);
+        setPosition1(position);
+        setSegment1(segment);
+
+        setTime2(time);
+        setPosition2(position);
+        setSegment2(segment);
+    }
+
+    public void update(int time, int position, byte segment) {
+        setTime2(time);
+        setPosition2(position);
+        setSegment2(segment);
     }
 
     public int getTime1() {
@@ -78,11 +83,11 @@ public final class AverageSpeedTempEvent
         this.f3 = highway;
     }
 
-    public int getDirection() {
+    public byte getDirection() {
         return this.f4;
     }
 
-    public void setDirection(int direction) {
+    public void setDirection(byte direction) {
         this.f4 = direction;
     }
 
@@ -102,19 +107,19 @@ public final class AverageSpeedTempEvent
         this.f6 = position2;
     }
 
-    public int getSegment1() {
+    public byte getSegment1() {
         return this.f7;
     }
 
-    public void setSegment1(int segment1) {
+    public void setSegment1(byte segment1) {
         this.f7 = segment1;
     }
 
-    public int getSegment2() {
+    public byte getSegment2() {
         return this.f8;
     }
 
-    public void setSegment2(int segment2) {
+    public void setSegment2(byte segment2) {
         this.f8 = segment2;
     }
 }

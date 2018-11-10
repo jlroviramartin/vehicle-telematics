@@ -8,7 +8,7 @@ import org.apache.flink.api.java.tuple.Tuple8;
  * time (f0), vid (f1), speed (f2), highway (f3), lane (f4), direction (f5), segment (f6), position (f7)
  */
 public final class PrincipalEvent
-        extends Tuple8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
+        extends Tuple8<Integer, Integer, Byte, Integer, Byte, Byte, Byte, Integer> {
 
     public static final int VID = 1;
     public static final int HIGHWAY = 3;
@@ -19,7 +19,7 @@ public final class PrincipalEvent
     public PrincipalEvent() {
     }
 
-    public PrincipalEvent(int time, int vid, int speed, int highway, int lane, int direction, int segment, int position) {
+    public PrincipalEvent(int time, int vid, byte speed, int highway, byte lane, byte direction, byte segment, int position) {
         setTime(time);
         setVid(vid);
         setSpeed(speed);
@@ -46,19 +46,19 @@ public final class PrincipalEvent
         f1 = vid;
     }
 
-    public int getSpeed() {
+    public byte getSpeed() {
         return f2;
     }
 
-    public void setSpeed(int speed) {
+    public void setSpeed(byte speed) {
         f2 = speed;
     }
 
-    public int getLane() {
+    public byte getLane() {
         return f4;
     }
 
-    public void setLane(int lane) {
+    public void setLane(byte lane) {
         f4 = lane;
     }
 
@@ -70,19 +70,19 @@ public final class PrincipalEvent
         f3 = highway;
     }
 
-    public int getDirection() {
+    public byte getDirection() {
         return f5;
     }
 
-    public void setDirection(int direction) {
+    public void setDirection(byte direction) {
         f5 = direction;
     }
 
-    public int getSegment() {
+    public byte getSegment() {
         return f6;
     }
 
-    public void setSegment(int segment) {
+    public void setSegment(byte segment) {
         f6 = segment;
     }
 
@@ -104,6 +104,4 @@ public final class PrincipalEvent
         setSegment(ev.getSegment());
         setPosition(ev.getPosition());
     }
-
-    public static final PrincipalEvent EMPTY = new PrincipalEvent(-1, 0, 0, 0, 0, 0, 0, 0);
 }

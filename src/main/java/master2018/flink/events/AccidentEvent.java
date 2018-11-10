@@ -8,12 +8,12 @@ import org.apache.flink.api.java.tuple.Tuple7;
  * time1 (f0), time1 (f1), vid (f2), highway (f3), segment (f4), direction (f5), position (f6)
  */
 public final class AccidentEvent
-        extends Tuple7<Integer, Integer, Integer, Integer, Integer, Integer, Integer> {
+        extends Tuple7<Integer, Integer, Integer, Integer, Byte, Byte, Integer> {
 
     public AccidentEvent() {
     }
 
-    public AccidentEvent(int time1, int time2, int vid, int highway, int segment, int direction, int position) {
+    public AccidentEvent(int time1, int time2, int vid, int highway, byte segment, byte direction, int position) {
         setTime1(time1);
         setTime2(time2);
         setVid(vid);
@@ -55,19 +55,19 @@ public final class AccidentEvent
         f3 = highway;
     }
 
-    public int getSegment() {
+    public byte getSegment() {
         return f4;
     }
 
-    public void setSegment(int segment) {
+    public void setSegment(byte segment) {
         f4 = segment;
     }
 
-    public int getDirection() {
+    public byte getDirection() {
         return f5;
     }
 
-    public void setDirection(int direction) {
+    public void setDirection(byte direction) {
         f5 = direction;
     }
 

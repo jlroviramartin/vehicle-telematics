@@ -8,12 +8,12 @@ import org.apache.flink.api.java.tuple.Tuple6;
  * time (f0), vid (f1), highway (f2), segment (f3), direction (f4), speed (f5)
  */
 public final class SpeedEvent
-        extends Tuple6<Integer, Integer, Integer, Integer, Integer, Integer> {
+        extends Tuple6<Integer, Integer, Integer, Byte, Byte, Byte> {
 
     public SpeedEvent() {
     }
 
-    public SpeedEvent(int time, int vid, int highway, int segment, int direction, int speed) {
+    public SpeedEvent(int time, int vid, int highway, byte segment, byte direction, byte speed) {
         setTime(time);
         setVid(vid);
         setHighway(highway);
@@ -46,27 +46,27 @@ public final class SpeedEvent
         f2 = highway;
     }
 
-    public int getSegment() {
+    public byte getSegment() {
         return f3;
     }
 
-    public void setSegment(int segment) {
+    public void setSegment(byte segment) {
         f3 = segment;
     }
 
-    public int getDirection() {
+    public byte getDirection() {
         return f4;
     }
 
-    public void setDirection(int direction) {
+    public void setDirection(byte direction) {
         f4 = direction;
     }
 
-    public int getSpeed() {
+    public byte getSpeed() {
         return f5;
     }
 
-    public void setSpeed(int speed) {
+    public void setSpeed(byte speed) {
         f5 = speed;
     }
 }
