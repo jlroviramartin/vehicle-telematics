@@ -12,11 +12,6 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
  */
 public final class SpeedReporter {
 
-    /**
-     * Speed limit used for calculating fines.
-     */
-    private static final int SPEED_LIMIT = 90;
-
     public static SingleOutputStreamOperator<SpeedEvent> analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
@@ -42,7 +37,15 @@ public final class SpeedReporter {
         }
     }
 
+    /**
+     * This class filters vehicles that drive faster then 90mph.
+     */
     private static final class SpeedFilterFunction implements FilterFunction<SpeedEvent> {
+
+        /**
+         * Speed limit used for calculating fines.
+         */
+        private static final byte SPEED_LIMIT = 90;
 
         public SpeedFilterFunction() {
         }
