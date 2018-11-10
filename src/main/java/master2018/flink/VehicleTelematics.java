@@ -92,6 +92,7 @@ public final class VehicleTelematics {
         accidentReporter
                 .writeAsCsv(Paths.get(outputPath, "accidents.csv").toString(), FileSystem.WriteMode.OVERWRITE)
                 .setParallelism(1);
+
         env.execute("Vehicle telematics");
     }
 }
