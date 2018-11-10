@@ -8,8 +8,8 @@ public class Utils {
     /**
      * This method converts meters per second to miles per hour.
      */
-    public static int getMilesPerHour(int meters, int seconds) {
-        return (int)((meters * 2.23694) / seconds);
+    public static byte getMilesPerHour(int meters, int seconds) {
+        return (byte)((meters * 2.23694) / seconds);
     }
 
     /**
