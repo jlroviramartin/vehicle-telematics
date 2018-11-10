@@ -9,12 +9,12 @@ import org.apache.flink.api.common.functions.FilterFunction;
  */
 public final class AverageSpeedBetweenSegmentsFilter implements FilterFunction<PrincipalEvent> {
 
-    private final static int MIN = 52;
-    private final static int MAX = 56;
+    private final static byte MIN = 52;
+    private final static byte MAX = 56;
 
     @Override
     public boolean filter(PrincipalEvent element) {
-        int segment = element.getSegment();
+        byte segment = element.getSegment();
         return segment >= MIN && segment <= MAX;
     }
 }
