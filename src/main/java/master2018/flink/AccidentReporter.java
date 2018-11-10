@@ -13,7 +13,7 @@ public final class AccidentReporter {
     public static SingleOutputStreamOperator analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
         return tuples
-                .filter(new AccidentFilterFunction()) // speed = 0
+                .filter(new ZeroSpeedFilterFunction()) // speed = 0
                 .keyBy(PrincipalEvent.VID,
                        PrincipalEvent.HIGHWAY,
                        PrincipalEvent.DIRECTION,
@@ -23,9 +23,12 @@ public final class AccidentReporter {
                 .apply(new AccidentWindowFunction());
     }
 
-    private static final class AccidentFilterFunction implements FilterFunction<PrincipalEvent> {
+    /**
+     * This class filters vehicles that drive at 0mph.
+     */
+    private static final class ZeroSpeedFilterFunction implements FilterFunction<PrincipalEvent> {
 
-        public AccidentFilterFunction() {
+        public ZeroSpeedFilterFunction() {
         }
 
         @Override
