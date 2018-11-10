@@ -21,12 +21,7 @@ public final class SpeedReporter {
 
         return tuples
                 .map(new MapToSpeedEvent())
-                .filter(new FilterFunction<SpeedEvent>() {
-                    @Override
-                    public boolean filter(SpeedEvent speedEvent) throws Exception {
-                        return speedEvent.getSpeed() > SPEED_LIMIT;
-                    }
-                });
+                .filter(new SpeedFilterFunction());
     }
 
     /**
@@ -44,6 +39,17 @@ public final class SpeedReporter {
                                   value.getSegment(), //  6->3
                                   value.getDirection(), // 5->4
                                   value.getSpeed()); // 2->5
+        }
+    }
+
+    private static final class SpeedFilterFunction implements FilterFunction<SpeedEvent> {
+
+        public SpeedFilterFunction() {
+        }
+
+        @Override
+        public boolean filter(SpeedEvent speedEvent) throws Exception {
+            return speedEvent.getSpeed() > SPEED_LIMIT;
         }
     }
 }
