@@ -25,14 +25,14 @@ public final class ParsePrincipalEventMapFunction implements MapFunction<String,
             throw new Exception("This line cannot be splitted: " + in);
         }
 
-        PrincipalEvent principalEvent = new PrincipalEvent(Integer.parseInt(split[0].trim()),
-                                                           Integer.parseInt(split[1].trim()),
-                                                           Integer.parseInt(split[2].trim()),
-                                                           Integer.parseInt(split[3].trim()),
-                                                           Integer.parseInt(split[4].trim()),
-                                                           Integer.parseInt(split[5].trim()),
-                                                           Integer.parseInt(split[6].trim()),
-                                                           Integer.parseInt(split[7].trim()));
-        return principalEvent;
+        return new PrincipalEvent(
+                Integer.parseInt(split[0].trim()),
+                Integer.parseInt(split[1].trim()),
+                Byte.parseByte(split[2].trim()),
+                Integer.parseInt(split[3].trim()),
+                Byte.parseByte(split[4].trim()),
+                Byte.parseByte(split[5].trim()),
+                Byte.parseByte(split[6].trim()),
+                Integer.parseInt(split[7].trim()));
     }
 }
