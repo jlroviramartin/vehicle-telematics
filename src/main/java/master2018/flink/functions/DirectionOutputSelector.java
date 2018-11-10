@@ -1,10 +1,9 @@
 package master2018.flink.functions;
 
-import master2018.flink.events.PrincipalEvent;
-import org.apache.flink.streaming.api.collector.selector.OutputSelector;
-
 import java.util.Arrays;
 import java.util.List;
+import master2018.flink.events.PrincipalEvent;
+import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 
 /**
  * This class selects {@code PrincipalEvent}s based on the direction. It is only used in case of splitting the original
