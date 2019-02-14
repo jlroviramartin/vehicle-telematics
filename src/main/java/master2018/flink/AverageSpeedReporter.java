@@ -134,7 +134,7 @@ public final class AverageSpeedReporter {
                 if (accumulator.getSegment2() != MAX) {
                     return ERROR;
                 }
-                byte averageSpeed = getMilesPerHour(
+                double averageSpeed = getMilesPerHour(
                         accumulator.getPosition2() - accumulator.getPosition1(),
                         accumulator.getTime2() - accumulator.getTime1());
 
@@ -225,7 +225,7 @@ public final class AverageSpeedReporter {
                 if (accumulator.getSegment2() != MIN) {
                     return ERROR;
                 }
-                byte averageSpeed = getMilesPerHour(
+                double averageSpeed = getMilesPerHour(
                         accumulator.getPosition1() - accumulator.getPosition2(),
                         accumulator.getTime2() - accumulator.getTime1());
 

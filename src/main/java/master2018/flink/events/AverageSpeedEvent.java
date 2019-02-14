@@ -9,12 +9,12 @@ import org.apache.flink.api.java.tuple.Tuple6;
  * time1 (f0), time2 (f1), vid (f2), highway (f3), direction (f4), averageSpeed (f5)
  */
 public final class AverageSpeedEvent
-        extends Tuple6<Integer, Integer, Integer, Integer, Byte, Byte> {
+        extends Tuple6<Integer, Integer, Integer, Integer, Byte, Double> {
 
     public AverageSpeedEvent() {
     }
 
-    public AverageSpeedEvent(int time1, int time2, int vid, int highway, byte direction, byte averageSpeed) {
+    public AverageSpeedEvent(int time1, int time2, int vid, int highway, byte direction, double averageSpeed) {
         setTime1(time1);
         setTime2(time2);
         setVID(vid);
@@ -63,11 +63,11 @@ public final class AverageSpeedEvent
         this.f4 = direccion;
     }
 
-    public byte getAverageSpeed() {
+    public double getAverageSpeed() {
         return this.f5;
     }
 
-    public void setAverageSpeed(byte averageSpeed) {
+    public void setAverageSpeed(double averageSpeed) {
         this.f5 = averageSpeed;
     }
 }

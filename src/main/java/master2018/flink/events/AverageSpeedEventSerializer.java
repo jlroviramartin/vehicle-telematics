@@ -14,7 +14,7 @@ public class AverageSpeedEventSerializer extends Serializer<AverageSpeedEvent> {
         output.write(t.getVID());
         output.write(t.getHighway());
         output.write(t.getDirection());
-        output.write(t.getAverageSpeed());
+        output.writeDouble(t.getAverageSpeed());
     }
 
     @Override
@@ -25,6 +25,6 @@ public class AverageSpeedEventSerializer extends Serializer<AverageSpeedEvent> {
                 input.readInt(),
                 input.readInt(),
                 input.readByte(),
-                input.readByte());
+                input.readDouble());
     }
 }

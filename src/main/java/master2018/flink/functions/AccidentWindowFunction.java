@@ -35,6 +35,8 @@ public final class AccidentWindowFunction
             }
         }
 
+        // It is neccessary in case of using file stream: when the file stream ends, Flink sends the rest of the events
+        // even if there are less than 4 events...
         if (count != 4) {
             return;
         }

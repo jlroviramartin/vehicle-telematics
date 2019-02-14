@@ -14,9 +14,10 @@ public final class SpeedReporter {
 
     public static SingleOutputStreamOperator<SpeedEvent> analyze(SingleOutputStreamOperator<PrincipalEvent> tuples) {
 
+        // Filter + Map is better...
         return tuples
-                .map(new MapToSpeedEvent())
-                .filter(new SpeedFilterFunction());
+                .filter(new SpeedFilterFunction())
+                .map(new MapToSpeedEvent());
     }
 
     /**
@@ -40,7 +41,7 @@ public final class SpeedReporter {
     /**
      * This class filters vehicles that drive faster then 90mph.
      */
-    private static final class SpeedFilterFunction implements FilterFunction<SpeedEvent> {
+    private static final class SpeedFilterFunction implements FilterFunction<PrincipalEvent> {
 
         /**
          * Speed limit used for calculating fines.
@@ -51,8 +52,8 @@ public final class SpeedReporter {
         }
 
         @Override
-        public boolean filter(SpeedEvent speedEvent) throws Exception {
-            return speedEvent.getSpeed() > SPEED_LIMIT;
+        public boolean filter(PrincipalEvent principalEvent) throws Exception {
+            return principalEvent.getSpeed() > SPEED_LIMIT;
         }
     }
 }
